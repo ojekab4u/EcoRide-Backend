@@ -59,6 +59,14 @@ const User = sequelize.define(
       type: DataTypes.BOOLEAN,
       defaultValue: false,
     },
+    lastLogin: {
+        type: DataTypes.DATE,
+        allowNull: true,
+    },
+    passwordChangedAt: {
+        type: DataTypes.DATE,
+        allowNull: true,
+    },
 
     status: {
       type: DataTypes.ENUM(

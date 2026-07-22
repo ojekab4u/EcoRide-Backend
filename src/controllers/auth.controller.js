@@ -1,23 +1,21 @@
-export const register = async (req, res) => {
+import { registerUser, loginUser } from "../services/auth.service.js";
 
-    res.status(501).json({
+export const register = async (req, res, next) => {
+  try {
+    const result = await registerUser(req.body);
 
-        success: false,
-
-        message: "Register endpoint not implemented."
-
-    });
-
+    res.status(201).json(result);
+  } catch (error) {
+    next(error);
+  }
 };
 
-export const login = async (req, res) => {
+export const login = async (req, res, next) => {
+  try {
+    const result = await loginUser(req.body);
 
-    res.status(501).json({
-
-        success: false,
-
-        message: "Login endpoint not implemented."
-
-    });
-
+    res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
 };
