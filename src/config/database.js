@@ -2,7 +2,7 @@
 import { Sequelize } from "sequelize";
 import dotenv from "dotenv";
 
-// import "../models/index.js";
+
 dotenv.config();
 
 const sequelize = new Sequelize(
@@ -20,10 +20,16 @@ const sequelize = new Sequelize(
 export const connectDB = async () => {
     try {
         await sequelize.authenticate();
-        console.log("PostgreSQL Connected");
+        console.log("Database Connected");
 
-        await sequelize.sync();
+        // Import all models and relationships
+        await import("../models/index.js");
 
+        await sequelize.sync({
+        alter: true,
+        });
+
+        console.log("Database Synced");
     } catch (error) {
         console.error(error.message);
     }

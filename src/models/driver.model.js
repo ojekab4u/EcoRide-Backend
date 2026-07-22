@@ -1,8 +1,8 @@
 import { DataTypes } from "sequelize";
 import sequelize from "../config/database.js";
 
-const Vehicle = sequelize.define(
-  "Vehicle",
+const DriverProfile = sequelize.define(
+  "DriverProfile",
   {
     id: {
       type: DataTypes.UUID,
@@ -10,33 +10,14 @@ const Vehicle = sequelize.define(
       primaryKey: true,
     },
 
-    brand: {
+    licenseNumber: {
       type: DataTypes.STRING,
       allowNull: false,
-    },
-
-    model: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-
-    year: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-    },
-
-    plateNumber: {
-      type: DataTypes.STRING,
       unique: true,
-      allowNull: false,
     },
 
-    color: {
-      type: DataTypes.STRING,
-    },
-
-    seatCapacity: {
-      type: DataTypes.INTEGER,
+    licenseExpiry: {
+      type: DataTypes.DATEONLY,
       allowNull: false,
     },
 
@@ -48,10 +29,14 @@ const Vehicle = sequelize.define(
       ),
       defaultValue: "PENDING",
     },
+
+    bio: {
+      type: DataTypes.TEXT,
+    },
   },
   {
     timestamps: true,
   }
 );
 
-export default Vehicle;
+export default DriverProfile;

@@ -2,9 +2,6 @@ import express from "express";
 import { connectDB } from "./src/config/database.js";
 
 
-// Import models once so Sequelize registers them
-import "./src/models/user.model.js";
-
 const app = express();
 
 app.use(express.json());
