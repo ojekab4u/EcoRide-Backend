@@ -66,3 +66,83 @@ export const loginValidator = [
     .notEmpty()
     .withMessage("Password is required."),
 ];
+
+
+export const changePasswordValidator = [
+
+    body("currentPassword")
+        .notEmpty()
+        .withMessage("Current password is required."),
+
+    body("newPassword")
+        .isLength({ min: 8 })
+        .withMessage("Password must be at least 8 characters.")
+        .matches(/[A-Z]/)
+        .withMessage("Password must contain an uppercase letter.")
+        .matches(/[a-z]/)
+        .withMessage("Password must contain a lowercase letter.")
+        .matches(/[0-9]/)
+        .withMessage("Password must contain a number."),
+
+    body("confirmPassword")
+        .custom((value, { req }) => {
+
+            if (value !== req.body.newPassword) {
+                throw new Error("Passwords do not match.");
+            }
+
+            return true;
+
+        }),
+
+    body("newPassword")
+        .custom((value, { req }) => {
+
+            if (value === req.body.currentPassword) {
+                throw new Error(
+                    "New password must be different from current password."
+                );
+            }
+
+            return true;
+
+        }),
+
+];
+
+export const forgotPasswordValidator = [
+
+    body("email")
+        .trim()
+        .notEmpty()
+        .withMessage("Email is required.")
+
+        .isEmail()
+        .withMessage("Please provide a valid email address.")
+
+];
+
+export const resetPasswordValidator = [
+
+    body("newPassword")
+        .notEmpty()
+        .withMessage("New password is required.")
+
+        .isLength({ min: 8 })
+        .withMessage("Password must be at least 8 characters long."),
+
+    body("confirmPassword")
+        .notEmpty()
+        .withMessage("Confirm password is required.")
+
+        .custom((value, { req }) => {
+
+            if (value !== req.body.newPassword) {
+                throw new Error("Passwords do not match.");
+            }
+
+            return true;
+
+        }),
+
+];
