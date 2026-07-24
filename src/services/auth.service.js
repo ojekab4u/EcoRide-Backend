@@ -1,10 +1,13 @@
 import { Op } from "sequelize";
+import crypto from "crypto"
 import User from "../models/user.model.js";
 import { hashPassword } from "../utils/hashPassword.js";
 import { comparePassword } from "../utils/comparePassword.js";
-import { generateToken } from "../utils/generateToken.js";
 import { MESSAGES } from "../constants/messages.js";
 import AppError from "../utils/AppError.js";
+import generateResetToken from "../utils/generateResetToken.js";
+import { generateToken } from "../utils/generateToken.js";
+import { sendResetEmail } from "./email.service.js";
 
 
 
@@ -142,4 +145,127 @@ export const loginUser = async (userData) => {
       lastLogin: user.lastLogin,
     },
   };
+};
+
+export const changePassword = async (
+    userId,
+    userData
+) => {
+
+    const {
+        currentPassword,
+        newPassword,
+    } = userData;
+
+    const user = await User.findByPk(userId);
+
+    if (!user) {
+        throw new AppError(
+            MESSAGES.USER_NOT_FOUND,
+            404
+        );
+    }
+
+    const passwordMatch = await comparePassword(
+        currentPassword,
+        user.password
+    );
+
+    if (!passwordMatch) {
+
+        throw new AppError(
+            MESSAGES.INCORRECT_PASSWORD,
+            401
+        );
+
+    }
+
+    const hashedPassword =
+        await hashPassword(newPassword);
+
+    await user.update({
+        password: hashedPassword,
+        passwordChangedAt: new Date(),
+
+    });
+
+    return null;
+
+};
+
+export const forgotPasswordService = async (email) => {
+
+    const user = await User.findOne({
+        where: { email },
+    });
+
+    if (!user) {
+        return;
+    }
+
+    const { resetToken, hashedToken } = generateResetToken();
+
+    user.passwordResetToken = hashedToken;
+    user.passwordResetExpires = new Date(
+        Date.now() + 15 * 60 * 1000
+    );
+
+    await user.save();
+    await sendResetEmail(
+    user.email,
+    resetToken);
+    return resetToken;
+};
+
+export const resetPasswordService = async (
+    token,
+    userData
+) => {
+
+    const {
+        newPassword,
+    } = userData;
+
+    // Hash the token received from the URL
+    const hashedToken = crypto
+        .createHash("sha256")
+        .update(token)
+        .digest("hex");
+
+    // Find a user with this token that hasn't expired
+    const user = await User.findOne({
+
+        where: {
+
+            passwordResetToken: hashedToken,
+
+            passwordResetExpires: {
+                [Op.gt]: new Date(),
+            },
+
+        },
+
+    });
+
+    if (!user) {
+
+        throw new AppError(
+            MESSAGES.INVALID_RESET_TOKEN,
+            400
+        );
+
+    }
+
+    // Hash the new password
+    user.password = await hashPassword(newPassword);
+
+    // Clear reset fields
+    user.passwordResetToken = null;
+    user.passwordResetExpires = null;
+
+    // Force old JWTs to become invalid
+    user.passwordChangedAt = new Date();
+
+    await user.save();
+
 };

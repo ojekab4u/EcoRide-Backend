@@ -39,6 +39,23 @@ const User = sequelize.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
+    lastLogin: {
+    type: DataTypes.DATE,
+    allowNull: true,
+},
+
+    passwordChangedAt: {
+    type: DataTypes.DATE,
+    allowNull: true,
+},
+    passwordResetToken: {
+    type: DataTypes.STRING,
+    allowNull: true,
+},
+    passwordResetExpires: {
+    type: DataTypes.DATE,
+    allowNull: true,
+},
 
     role: {
       type: DataTypes.ENUM(
