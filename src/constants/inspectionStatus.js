@@ -1,0 +1,5 @@
+export const INSPECTION_STATUS = {
+    PENDING: "PENDING",
+    PASSED: "PASSED",
+    FAILED: "FAILED",
+};

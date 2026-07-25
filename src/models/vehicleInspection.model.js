@@ -1,5 +1,6 @@
 import { DataTypes } from "sequelize";
 import sequelize from "../config/database.js";
+import { INSPECTION_STATUS } from "../constants/inspectionStatus.js";
 
 const VehicleInspection = sequelize.define(
     "VehicleInspection",
@@ -8,6 +9,10 @@ const VehicleInspection = sequelize.define(
             type: DataTypes.UUID,
             defaultValue: DataTypes.UUIDV4,
             primaryKey: true,
+        },
+        vehicleId: {
+            type: DataTypes.UUID,
+            allowNull: false,
         },
 
         frontPhoto: {
@@ -36,11 +41,9 @@ const VehicleInspection = sequelize.define(
 
         inspectionStatus: {
             type: DataTypes.ENUM(
-                "PENDING",
-                "PASSED",
-                "FAILED"
+        ...Object.values(INSPECTION_STATUS)
             ),
-            defaultValue: "PENDING",
+            defaultValue: INSPECTION_STATUS.PENDING,
         },
 
         reviewedAt: {
