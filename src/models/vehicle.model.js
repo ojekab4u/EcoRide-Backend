@@ -1,57 +1,81 @@
 import { DataTypes } from "sequelize";
 import sequelize from "../config/database.js";
+import { VERIFICATION_STATUS } from "../constants/verificationStatus.js";
 
 const Vehicle = sequelize.define(
-  "Vehicle",
-  {
-    id: {
-      type: DataTypes.UUID,
-      defaultValue: DataTypes.UUIDV4,
-      primaryKey: true,
-    },
+    "Vehicle",
+    {
+        id: {
+            type: DataTypes.UUID,
+            defaultValue: DataTypes.UUIDV4,
+            primaryKey: true,
+        },
+        driverId: {
+            type: DataTypes.UUID,
+            allowNull: false,
+        },
 
-    brand: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
+        brand: {
+            type: DataTypes.STRING,
+            allowNull: false,
+        },
 
-    model: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
+        model: {
+            type: DataTypes.STRING,
+            allowNull: false,
+        },
 
-    year: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-    },
+        year: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+        },
 
-    plateNumber: {
-      type: DataTypes.STRING,
-      unique: true,
-      allowNull: false,
-    },
+        color: {
+            type: DataTypes.STRING,
+            allowNull: false,
+        },
 
-    color: {
-      type: DataTypes.STRING,
-    },
+        plateNumber: {
+            type: DataTypes.STRING,
+            allowNull: false,
+            unique: true,
+        },
 
-    seatCapacity: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-    },
+        vehicleType: {
+            type: DataTypes.ENUM(
+                "SEDAN",
+                "SUV",
+                "MINIBUS",
+                "TRUCK",
+                "BIKE"
+            ),
+            allowNull: false,
+        },
 
-    verificationStatus: {
-      type: DataTypes.ENUM(
-        "PENDING",
-        "APPROVED",
-        "REJECTED"
-      ),
-      defaultValue: "PENDING",
+        seatCapacity: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+        },
+
+        verificationStatus: {
+            type: DataTypes.ENUM(
+                ...Object.values(VERIFICATION_STATUS)
+        ),
+        defaultValue: VERIFICATION_STATUS.PENDING,
     },
-  },
-  {
-    timestamps: true,
-  }
+        vehicleImage: {
+            type: DataTypes.STRING,
+            allowNull: true,
+        },
+
+        isActive: {
+            type: DataTypes.BOOLEAN,
+            defaultValue: true,
+        },
+    },
+    {
+        timestamps: true,
+    }
 );
 
 export default Vehicle;

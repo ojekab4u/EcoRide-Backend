@@ -8,6 +8,7 @@ import AppError from "../utils/AppError.js";
 import generateResetToken from "../utils/generateResetToken.js";
 import { generateToken } from "../utils/generateToken.js";
 import { sendResetEmail } from "./email.service.js";
+import normalizeEnum from "../utils/normalizeEnum.js";
 
 
 
@@ -20,8 +21,10 @@ export const registerUser = async (userData) => {
     password,
     role,
   } = userData;
-  const normalizedRole = role
-  ? role.toUpperCase() : "PASSENGER";
+ 
+  if (userData.role) {
+    userData.role = normalizeEnum(userData.role);
+}
 
   // Check if email or phone already exists
   const existingUser = await User.findOne({
@@ -51,7 +54,7 @@ export const registerUser = async (userData) => {
     email,
     phoneNumber,
     password: hashedPassword,
-    role: normalizedRole,
+    role,
   });
 
   // Generate JWT

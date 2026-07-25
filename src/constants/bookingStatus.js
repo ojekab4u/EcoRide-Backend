@@ -1,0 +1,6 @@
+export const BOOKING_STATUS = Object.freeze({
+    PENDING: "PENDING",
+    CONFIRMED: "CONFIRMED",
+    CANCELLED: "CANCELLED",
+    COMPLETED: "COMPLETED",
+});

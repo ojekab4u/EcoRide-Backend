@@ -1,0 +1,6 @@
+export const RIDE_STATUS = Object.freeze({
+    SCHEDULED: "SCHEDULED",
+    ONGOING: "ONGOING",
+    COMPLETED: "COMPLETED",
+    CANCELLED: "CANCELLED",
+});
