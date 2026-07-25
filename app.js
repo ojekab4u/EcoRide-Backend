@@ -6,7 +6,11 @@ import rideRoutes from "./src/routes/ride.routes.js";
 import bookingRoutes from "./src/routes/booking.routes.js";
 import paymentRoutes from "./src/routes/payment.routes.js";
 import driverRoutes from "./src/routes/driver.routes.js";
+
 import vehicleRoutes from "./src/routes/vehicle.routes.js";
+import driverDocumentRoutes from "./src/routes/driverDocument.routes.js";
+import vehicleInspectionRoutes from "./src/routes/vehicleInspection.routes.js";
+
 // import walletRoutes from "./src/routes/wallet.routes.js";
 // import ratingRoutes from "./src/routes/rating.routes.js";
 // import notificationRoutes from "./src/routes/notification.routes.js";
@@ -36,6 +40,15 @@ app.use("/api/v1/bookings", bookingRoutes);
 app.use("/api/v1/payments", paymentRoutes);
 app.use("/api/v1/drivers", driverRoutes);
 app.use("/api/v1/vehicles", vehicleRoutes);
+
+app.use(
+    "/api/v1/driver-documents",
+    driverDocumentRoutes
+);
+app.use(
+    "/api/v1/vehicle-inspections",
+    vehicleInspectionRoutes
+);
 // app.use("/api/v1/wallets", walletRoutes);
 // app.use("/api/v1/ratings", ratingRoutes);
 // app.use("/api/v1/notifications", notificationRoutes);
