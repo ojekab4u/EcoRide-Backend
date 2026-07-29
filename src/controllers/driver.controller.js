@@ -22,9 +22,9 @@ export const createDriverProfile = async (req, res, next) => {
             driver
         );
 
-    } catch (error) {
-        next(error);
-    }
+    } catch (error) {        
+    next(error);
+}
 };
 
 export const getDriverProfile = async (req, res, next) => {

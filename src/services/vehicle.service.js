@@ -2,6 +2,7 @@ import Vehicle from "../models/vehicle.model.js";
 import DriverProfile from "../models/driver.model.js";
 import AppError from "../utils/AppError.js";
 import normalizePlateNumber from "../utils/normalizePlateNumber.js";
+import VehicleInspection from "../models/vehicleInspection.model.js";
 
 export const createVehicleService = async (
     userId,
@@ -19,14 +20,13 @@ export const createVehicleService = async (
         );
     }
 
-    vehicleData.plateNumber = vehicleData.plateNumber
-        .trim()
-        .toUpperCase();
+    vehicleData.plateNumber = normalizePlateNumber(
+    vehicleData.plateNumber
+);
 
     const existingVehicle = await Vehicle.findOne({
         where: {
-            plateNumber: vehicleData.plateNumber,
-            isActive: true,
+            plateNumber: vehicleData.plateNumber,           
         },
     });
 
@@ -61,8 +61,12 @@ export const getVehiclesService = async (userId) => {
     return await Vehicle.findAll({
         where: {
             driverId: driver.id,
-            isActive: true,
         },
+        include: [
+        {
+            model: VehicleInspection,
+        },
+    ],
         order: [["createdAt", "DESC"]],
     });
 };
@@ -79,9 +83,13 @@ export const getVehicleByIdService = async (
     const vehicle = await Vehicle.findOne({
         where: {
             id: vehicleId,
-            driverId: driver.id,
-            isActive: true,
+            driverId: driver.id,          
         },
+         include: [
+        {
+            model: VehicleInspection,
+        },
+    ],
     });
 
     if (!vehicle) {
@@ -107,7 +115,7 @@ export const updateVehicleService = async (
 
     delete vehicleData.verificationStatus;
     delete vehicleData.vehicleImage;
-    delete vehicleData.isActive;
+    
 
     if (vehicleData.plateNumber) {
     vehicleData.plateNumber = normalizePlateNumber(
@@ -117,7 +125,7 @@ export const updateVehicleService = async (
     const existingVehicle = await Vehicle.findOne({
         where: {
             plateNumber: vehicleData.plateNumber,
-            isActive: true,
+            
         },
     });
 
@@ -146,9 +154,7 @@ export const deleteVehicleService = async (
         vehicleId
     );
 
-    vehicle.isActive = false;
-
-    await vehicle.save();
+   await vehicle.save();
 
     return;
 };

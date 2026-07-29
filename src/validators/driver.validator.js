@@ -21,6 +21,8 @@ export const createDriverProfileValidator = [
 
     body("preferredVehicleType")
         .optional()
+         .customSanitizer(value =>
+        value?.trim().toUpperCase())
         .isIn([
             "SEDAN",
             "SUV",
@@ -47,6 +49,8 @@ export const updateDriverProfileValidator = [
 
     body("preferredVehicleType")
         .optional()
+         .customSanitizer(value =>
+        value?.trim().toUpperCase())
         .isIn([
             "SEDAN",
             "SUV",
