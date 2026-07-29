@@ -22,6 +22,7 @@ import otpRoutes from "./src/routes/otp.routes.js";
 
 import testRoutes from "./src/routes/test.routes.js";
 
+import adminRoutes from "./src/routes/admin.routes.js";
 
 
 
@@ -49,6 +50,7 @@ app.use("/api/v1/drivers", driverRoutes);
 app.use("/api/v1/passengers", passengerRoutes);
 app.use("/api/v1/vehicles", vehicleRoutes);
 
+app.use("/api/v1/admin", adminRoutes);
 app.use(
   "/api/v1/driver-documents",
   driverDocumentRoutes

@@ -1,36 +1,16 @@
 import { body } from "express-validator";
+import { INSPECTION_STATUS } from "../constants/inspectionStatus.js";
 
 export const createVehicleInspectionValidator = [
 
-    // body("frontPhoto")
-    //     .trim()
-    //     .notEmpty()
-    //     .withMessage("Front photo is required."),
+     body("status")
+        .customSanitizer(value => value?.trim().toUpperCase())
+        .isIn(Object.values(INSPECTION_STATUS))
+        .withMessage("Invalid inspection status."),
 
-    // body("rearPhoto")
-    //     .trim()
-    //     .notEmpty()
-    //     .withMessage("Rear photo is required."),
-
-    // body("dashboardPhoto")
-    //     .trim()
-    //     .notEmpty()
-    //     .withMessage("Dashboard photo is required."),
-
-    // body("odometerPhoto")
-    //     .trim()
-    //     .notEmpty()
-    //     .withMessage("Odometer photo is required."),
-
-    // body("tyrePhoto")
-    //     .trim()
-    //     .notEmpty()
-    //     .withMessage("Tyre photo is required."),
-
-    // body("safetyEquipmentPhoto")
-    //     .trim()
-    //     .notEmpty()
-    //     .withMessage("Safety equipment photo is required."),
+    body("reviewNote")
+        .optional()
+        .trim(),
 ];
 
 export const updateVehicleInspectionValidator = [
