@@ -3,14 +3,14 @@ import { INSPECTION_STATUS } from "../constants/inspectionStatus.js";
 
 export const createVehicleInspectionValidator = [
 
-     body("status")
-        .customSanitizer(value => value?.trim().toUpperCase())
-        .isIn(Object.values(INSPECTION_STATUS))
-        .withMessage("Invalid inspection status."),
+    //  body("status")
+    //     .customSanitizer(value => value?.trim().toUpperCase())
+    //     .isIn(Object.values(INSPECTION_STATUS))
+    //     .withMessage("Invalid inspection status."),
 
-    body("reviewNote")
-        .optional()
-        .trim(),
+    // body("reviewNote")
+    //     .optional()
+    //     .trim(),
 ];
 
 export const updateVehicleInspectionValidator = [
@@ -26,4 +26,22 @@ export const updateVehicleInspectionValidator = [
     // body("tyrePhoto").optional(),
 
     // body("safetyEquipmentPhoto").optional(),
+];
+
+
+export const reviewInspectionValidator = [
+
+    body("status")
+        .customSanitizer(value =>
+            value?.trim().toUpperCase()
+        )
+        .isIn(Object.values(INSPECTION_STATUS))
+        .withMessage(
+            "Status must be PASSED or FAILED."
+        ),
+
+    body("reviewNote")
+        .optional()
+        .trim(),
+
 ];

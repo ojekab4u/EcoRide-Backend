@@ -36,12 +36,22 @@ export const reviewVehicle = async (
 };
 
 export const getAllVehiclesForReview =
-async (req,res,next)=>{
+async (req, res, next) => {
 
-    try{
+    try {
+
+        const {
+            page,
+            limit,
+            status,
+        } = req.query;
 
         const vehicles =
-        await getAllVehiclesForReviewService();
+            await getAllVehiclesForReviewService(
+                page,
+                limit,
+                status
+            );
 
         return successResponse(
             res,
@@ -50,7 +60,7 @@ async (req,res,next)=>{
             vehicles
         );
 
-    }catch(error){
+    } catch (error) {
 
         next(error);
 
