@@ -2,6 +2,7 @@ import Vehicle from "../models/vehicle.model.js";
 import AppError from "../utils/AppError.js";
 import DriverProfile from "../models/driver.model.js";
 import VehicleInspection from "../models/vehicleInspection.model.js";
+import { paginate , getPagingData,} from "../utils/pagination.js";
 
 export const reviewVehicleService = async (
     vehicleId,
@@ -33,15 +34,54 @@ export const reviewVehicleService = async (
     return vehicle;
 };
 
-export const getAllVehiclesForReviewService = async () => {
+export const getAllVehiclesForReviewService = async (
+    page,
+    limit,
+    status
+) => {
 
-    return await Vehicle.findAll({
-         include: [
-        DriverProfile,
-        VehicleInspection,
-    ],
-        order: [["createdAt", "DESC"]],
+    const {
+        limit: pageLimit,
+        offset,
+        currentPage,
+    } = paginate({
+        page,
+        limit,
     });
+
+    const where = {};
+
+    if (status) {
+        where.verificationStatus =
+            status.toUpperCase();
+    }
+
+    const { count, rows } =
+        await Vehicle.findAndCountAll({
+
+            where,
+
+            include: [
+                DriverProfile,
+                VehicleInspection,
+            ],
+
+            limit: pageLimit,
+
+            offset,
+
+            order: [
+                ["createdAt", "DESC"],
+            ],
+
+        });
+
+    return getPagingData(
+        count,
+        rows,
+        currentPage,
+        pageLimit
+    );
 
 };
 

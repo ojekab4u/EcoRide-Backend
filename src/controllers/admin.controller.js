@@ -1,4 +1,6 @@
-import { reviewDriverProfileService }
+import { reviewDriverProfileService,
+    getUsersService,
+ }
 from "../services/admin.service.js";
 
 import { successResponse }
@@ -37,5 +39,34 @@ profile
 next(error);
 
 }
+
+};
+
+
+export const getUsers = async (
+    req,
+    res,
+    next
+) => {
+
+    try {
+
+        const users =
+            await getUsersService(
+                req.query
+            );
+
+        return successResponse(
+            res,
+            200,
+            "Users retrieved successfully.",
+            users
+        );
+
+    } catch (error) {
+
+        next(error);
+
+    }
 
 };

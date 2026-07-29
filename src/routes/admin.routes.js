@@ -8,6 +8,7 @@ import { ROLES } from "../constants/roles.js";
 
 import {
     reviewDriverProfile,
+    getUsers,
 } from "../controllers/admin.controller.js";
 
 import {
@@ -25,7 +26,7 @@ import {
     reviewInspection,
 } from "../controllers/vehicleInspectionAdmin.controller.js";
 
-
+import {reviewInspectionValidator} from "../validators/vehicleInspection.validator.js"
 
 const router = express.Router();
 
@@ -88,9 +89,17 @@ router.patch(
     "/inspections/:id",
     protect,
     authorize(ROLES.PLATFORM_ADMIN),
-    reviewValidator,
+    // reviewValidator,
+    reviewInspectionValidator,
     validate,
     reviewInspection
+);
+
+router.get(
+    "/users",
+    protect,
+    authorize(ROLES.PLATFORM_ADMIN),
+    getUsers
 );
 
 export default router;
