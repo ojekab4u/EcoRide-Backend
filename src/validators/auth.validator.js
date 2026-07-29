@@ -48,10 +48,6 @@ export const registerValidator = [
       return true;
     }),
 
-  body("role")
-    .optional()
-    .isIn(Object.values(ROLES))
-    .withMessage("Invalid role."),
 ];
 
 

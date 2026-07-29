@@ -17,31 +17,52 @@ import {
     updateVehicleInspectionValidator,
 } from "../validators/vehicleInspection.validator.js";
 
+import upload from "../middlewares/upload.middleware.js";
 const router = express.Router();
 
+
 router.post(
-    "/",
+    "/:vehicleId",
     protect,
     authorize(ROLES.DRIVER),
-    createVehicleInspectionValidator,
-    validate,
+
+    upload.fields([
+        { name: "frontPhoto", maxCount: 1 },
+        { name: "rearPhoto", maxCount: 1 },
+        { name: "dashboardPhoto", maxCount: 1 },
+        { name: "odometerPhoto", maxCount: 1 },
+        { name: "tyrePhoto", maxCount: 1 },
+        { name: "safetyEquipmentPhoto", maxCount: 1 },
+    ]),
+
     createVehicleInspection
 );
 
+router.patch(
+    "/:vehicleId",
+    protect,
+    authorize(ROLES.DRIVER),
+
+    upload.fields([
+        { name: "frontPhoto", maxCount: 1 },
+        { name: "rearPhoto", maxCount: 1 },
+        { name: "dashboardPhoto", maxCount: 1 },
+        { name: "odometerPhoto", maxCount: 1 },
+        { name: "tyrePhoto", maxCount: 1 },
+        { name: "safetyEquipmentPhoto", maxCount: 1 },
+    ]),
+
+    updateVehicleInspection
+);
+
+
 router.get(
-    "/",
+    "/:vehicleId",
     protect,
     authorize(ROLES.DRIVER),
     getVehicleInspection
 );
 
-router.patch(
-    "/",
-    protect,
-    authorize(ROLES.DRIVER),
-    updateVehicleInspectionValidator,
-    validate,
-    updateVehicleInspection
-);
+
 
 export default router;

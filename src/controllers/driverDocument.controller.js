@@ -3,8 +3,11 @@ import {
     getDriverDocumentsService,
     updateDriverDocumentsService,
 } from "../services/driverDocument.service.js";
+import uploadToCloudinary from "../utils/uploadToCloudinary.js";
+import buildDriverDocumentUploads from "../utils/buildDriverDocumentUploads.js";
 
 import { successResponse } from "../utils/response.js";
+
 
 export const uploadDriverDocuments = async (
     req,
@@ -13,10 +16,13 @@ export const uploadDriverDocuments = async (
 ) => {
     try {
 
+        const documentData =
+            await buildDriverDocumentUploads(req.files);
+
         const documents =
             await uploadDriverDocumentsService(
                 req.user.id,
-                req.body
+                documentData
             );
 
         return successResponse(
@@ -66,10 +72,13 @@ export const updateDriverDocuments = async (
 ) => {
     try {
 
+        const documentData =
+            await buildDriverDocumentUploads(req.files);
+
         const documents =
             await updateDriverDocumentsService(
                 req.user.id,
-                req.body
+                documentData
             );
 
         return successResponse(

@@ -1,6 +1,5 @@
 import { DataTypes } from "sequelize";
 import sequelize from "../config/database.js";
-import { VERIFICATION_STATUS } from "../constants/verificationStatus.js";
 
 const Vehicle = sequelize.define(
     "Vehicle",
@@ -10,14 +9,10 @@ const Vehicle = sequelize.define(
             defaultValue: DataTypes.UUIDV4,
             primaryKey: true,
         },
-        driverId: {
-            type: DataTypes.UUID,
-            allowNull: false,
-        },
 
         brand: {
             type: DataTypes.STRING,
-            allowNull: false,
+            allowNull: true,
         },
 
         model: {
@@ -57,20 +52,37 @@ const Vehicle = sequelize.define(
             allowNull: false,
         },
 
-        verificationStatus: {
-            type: DataTypes.ENUM(
-                ...Object.values(VERIFICATION_STATUS)
-        ),
-        defaultValue: VERIFICATION_STATUS.PENDING,
-    },
-        vehicleImage: {
+        frontImage: {
             type: DataTypes.STRING,
-            allowNull: true,
         },
 
-        isActive: {
-            type: DataTypes.BOOLEAN,
-            defaultValue: true,
+        rearImage: {
+            type: DataTypes.STRING,
+        },
+
+        leftImage: {
+            type: DataTypes.STRING,
+        },
+
+        rightImage: {
+            type: DataTypes.STRING,
+        },
+
+        interiorImage: {
+            type: DataTypes.STRING,
+        },
+
+        verificationStatus: {
+            type: DataTypes.ENUM(
+                "PENDING",
+                "APPROVED",
+                "REJECTED"
+            ),
+            defaultValue: "PENDING",
+        },
+
+        rejectionReason: {
+            type: DataTypes.TEXT,
         },
     },
     {

@@ -8,11 +8,11 @@ import { successResponse } from "../utils/response.js";
 
 export const createVehicleInspection = async (req, res, next) => {
     try {
-
         const inspection =
             await createVehicleInspectionService(
                 req.user.id,
-                req.body
+                req.params.vehicleId,
+                req.files
             );
 
         return successResponse(
@@ -32,7 +32,8 @@ export const getVehicleInspection = async (req, res, next) => {
 
         const inspection =
             await getVehicleInspectionService(
-                req.user.id
+                req.user.id,
+                req.params.vehicleId
             );
 
         return successResponse(
@@ -53,7 +54,8 @@ export const updateVehicleInspection = async (req, res, next) => {
         const inspection =
             await updateVehicleInspectionService(
                 req.user.id,
-                req.body
+                req.params.vehicleId,
+                req.files
             );
 
         return successResponse(

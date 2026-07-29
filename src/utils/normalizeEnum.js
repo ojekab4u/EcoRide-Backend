@@ -1,10 +1,14 @@
 const normalizeEnum = (value) => {
-
     if (!value) return value;
 
-    return value
-        .trim()
-        .toUpperCase();
+    const normalized = value.trim().toUpperCase();
+
+    // Legacy support
+    if (normalized === "USER") {
+        return "PASSENGER";
+    }
+
+    return normalized;
 };
 
 export default normalizeEnum;

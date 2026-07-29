@@ -10,12 +10,19 @@ import driverRoutes from "./src/routes/driver.routes.js";
 import vehicleRoutes from "./src/routes/vehicle.routes.js";
 import driverDocumentRoutes from "./src/routes/driverDocument.routes.js";
 import vehicleInspectionRoutes from "./src/routes/vehicleInspection.routes.js";
+import passengerRoutes from "./src/routes/passenger.routes.js";
+import passengerDocumentRoutes from "./src/routes/passengerDocument.routes.js";
 
 // import walletRoutes from "./src/routes/wallet.routes.js";
 // import ratingRoutes from "./src/routes/rating.routes.js";
 // import notificationRoutes from "./src/routes/notification.routes.js";
 
 import errorHandler from "./src/middlewares/error.middleware.js";
+import otpRoutes from "./src/routes/otp.routes.js";
+
+import testRoutes from "./src/routes/test.routes.js";
+
+
 
 
 const app = express();
@@ -39,20 +46,27 @@ app.use("/api/v1/rides", rideRoutes);
 app.use("/api/v1/bookings", bookingRoutes);
 app.use("/api/v1/payments", paymentRoutes);
 app.use("/api/v1/drivers", driverRoutes);
+app.use("/api/v1/passengers", passengerRoutes);
 app.use("/api/v1/vehicles", vehicleRoutes);
 
 app.use(
-    "/api/v1/driver-documents",
-    driverDocumentRoutes
+  "/api/v1/driver-documents",
+  driverDocumentRoutes
 );
 app.use(
-    "/api/v1/vehicle-inspections",
-    vehicleInspectionRoutes
+  "/api/v1/vehicle-inspections",
+  vehicleInspectionRoutes
+);
+app.use(
+  "/api/v1/passenger-documents",
+  passengerDocumentRoutes
 );
 // app.use("/api/v1/wallets", walletRoutes);
 // app.use("/api/v1/ratings", ratingRoutes);
 // app.use("/api/v1/notifications", notificationRoutes);
+app.use("/api/v1/test", testRoutes);
 
+app.use("/api/v1/otp", otpRoutes);
 app.use(errorHandler);
 
 app.listen(PORT, () => {

@@ -1,4 +1,5 @@
 export const ROLES = Object.freeze({
+    UNASSIGNED: "UNASSIGNED",
     PASSENGER: "PASSENGER",
     DRIVER: "DRIVER",
     CORPORATE_ADMIN: "CORPORATE_ADMIN",

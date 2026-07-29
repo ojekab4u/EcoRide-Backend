@@ -10,7 +10,10 @@ import Wallet from "./wallet.model.js";
 import Rating from "./rating.model.js";
 import Notification from "./notification.model.js";
 import BankAccount from "./bankAccount.model.js";
-
+import OTP from "./otp.model.js";
+import PassengerProfile from "./passengerProfile.model.js";
+import EmergencyContact from "./emergencyContact.model.js";
+import PassengerDocument from "./passengerDocument.model.js";
 
 
 // USER RELATIONSHIPS
@@ -131,6 +134,46 @@ Rating.belongsTo(Booking, {
     foreignKey: "bookingId",
 });
 
+// OTP
+User.hasMany(OTP, {
+    foreignKey: "userId",
+    as: "otps",
+    onDelete: "CASCADE",
+});
+
+OTP.belongsTo(User, {
+    foreignKey: "userId",
+    as: "user",
+});
+
+// PASSENGER PROFILE
+
+User.hasOne(PassengerProfile, {
+    foreignKey: "userId",
+    onDelete: "CASCADE",
+});
+
+PassengerProfile.belongsTo(User, {
+    foreignKey: "userId",
+});
+
+PassengerProfile.hasOne(EmergencyContact, {
+    foreignKey: "passengerProfileId",
+    onDelete: "CASCADE",
+});
+
+EmergencyContact.belongsTo(PassengerProfile, {
+    foreignKey: "passengerProfileId",
+});
+
+PassengerProfile.hasOne(PassengerDocument, {
+    foreignKey: "passengerProfileId",
+    onDelete: "CASCADE",
+});
+
+PassengerDocument.belongsTo(PassengerProfile, {
+    foreignKey: "passengerProfileId",
+});
 
 export {
     User,
@@ -145,4 +188,8 @@ export {
     Rating,
     Notification,
     BankAccount,
+    OTP,
+    PassengerProfile,
+    EmergencyContact,
+    PassengerDocument
 };
