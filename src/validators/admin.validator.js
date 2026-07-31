@@ -17,3 +17,19 @@ export const reviewValidator = [
         .trim(),
 
 ];
+
+
+export const updateUserRoleValidator = [
+
+    body("role")
+        .trim()
+        .toUpperCase()
+        .isIn([
+            "PASSENGER",
+            "DRIVER",
+            "CORPORATE_ADMIN",
+            "PLATFORM_ADMIN",
+        ])
+        .withMessage("Invalid role."),
+
+];

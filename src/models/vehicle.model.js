@@ -12,7 +12,7 @@ const Vehicle = sequelize.define(
 
         brand: {
             type: DataTypes.STRING,
-            allowNull: true,
+            allowNull: false,
         },
 
         model: {

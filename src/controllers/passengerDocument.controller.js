@@ -1,9 +1,12 @@
+
 import {
     uploadPassengerDocumentService,
+    updatePassengerDocumentService,
     getPassengerDocumentService,
 } from "../services/passengerDocument.service.js";
-
 import { successResponse } from "../utils/response.js";
+import buildPassengerDocumentUploads from "../utils/buildPassengerDocumentUploads.js";
+
 
 export const uploadPassengerDocument = async (
     req,
@@ -11,12 +14,17 @@ export const uploadPassengerDocument = async (
     next
 ) => {
 
-    try {
+    try {        
+
+        const documentData =
+            await buildPassengerDocumentUploads(
+                req.files
+            );
 
         const document =
             await uploadPassengerDocumentService(
                 req.user.id,
-                req.body
+                documentData
             );
 
         return successResponse(
@@ -60,4 +68,31 @@ export const getPassengerDocument = async (
 
     }
 
+};
+
+
+export const updatePassengerDocument = async (
+    req,
+    res,
+    next
+) => {
+    try {
+
+        const documentData = await buildPassengerDocumentUploads(req.files);
+
+        const document = await updatePassengerDocumentService(
+            req.user.id,
+            documentData
+        );
+
+        return successResponse(
+            res,
+            200,
+            "Passenger documents updated successfully.",
+            document
+        );
+
+    } catch (error) {
+        next(error);
+    }
 };

@@ -8,10 +8,11 @@ import { successResponse } from "../utils/response.js";
 
 export const getDriverDashboard = async (req, res, next) => {
     try {
-
+        
         const dashboard =
-            await getDriverDashboardService();
-
+        await getDriverDashboardService(
+        req.user.id
+    );
         return successResponse(
             res,
             200,
@@ -27,9 +28,10 @@ export const getDriverDashboard = async (req, res, next) => {
 export const getPassengerDashboard = async (req, res, next) => {
     try {
 
-        const dashboard =
-            await getPassengerDashboardService();
-
+      const dashboard =
+        await getPassengerDashboardService(
+        req.user.id
+    );
         return successResponse(
             res,
             200,

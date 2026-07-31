@@ -1,5 +1,6 @@
 import User from "../models/user.model.js";
 import AppError from "../utils/AppError.js";
+import { ROLES } from "../constants/roles.js";
 
 export const selectRoleService = async (
     userId,
@@ -15,10 +16,24 @@ export const selectRoleService = async (
         );
     }
 
-    if (user.role !== "UNASSIGNED") {
+    if (user.role !== ROLES.UNASSIGNED) {
         throw new AppError(
             "Role has already been selected.",
             409
+        );
+    }
+
+    role = role?.trim().toUpperCase();
+
+    if (
+        ![
+            ROLES.DRIVER,
+            ROLES.PASSENGER,
+        ].includes(role)
+    ) {
+        throw new AppError(
+            "You can only select DRIVER or PASSENGER.",
+            400
         );
     }
 

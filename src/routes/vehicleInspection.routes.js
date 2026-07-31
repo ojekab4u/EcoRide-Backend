@@ -51,7 +51,6 @@ router.patch(
         { name: "tyrePhoto", maxCount: 1 },
         { name: "safetyEquipmentPhoto", maxCount: 1 },
     ]),
-
     updateVehicleInspection
 );
 
