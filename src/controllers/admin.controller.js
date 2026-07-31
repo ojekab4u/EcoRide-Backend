@@ -1,10 +1,45 @@
-import { reviewDriverProfileService,
-    getUsersService,
- }
-from "../services/admin.service.js";
 
 import { successResponse }
 from "../utils/response.js";
+import {  
+    reviewDriverProfileService,
+    reviewPassengerProfileService,
+    getUsersService,
+    updateUserRoleService,
+    getDriverDetailsService,
+    getPassengerDetailsService,} from "../services/admin.service.js";
+import User from "../models/user.model.js";
+import VehicleInspection from "../models/vehicleInspection.model.js";
+
+
+export const updateUserRole = async (
+    req,
+    res,
+    next
+) => {
+
+    try {
+
+        const user =
+            await updateUserRoleService(
+                req.params.id,
+                req.body.role
+            );
+
+        return successResponse(
+            res,
+            200,
+            "User role updated successfully.",
+            user
+        );
+
+    } catch (error) {
+
+        next(error);
+
+    }
+
+};
 
 export const reviewDriverProfile =
 async (req,res,next)=>{
@@ -61,6 +96,112 @@ export const getUsers = async (
             200,
             "Users retrieved successfully.",
             users
+        );
+
+    } catch (error) {
+
+        next(error);
+
+    }
+
+};
+
+
+export const getDriverDetails = async (req, res, next) => {
+    try {
+        const data = await getDriverDetailsService(
+            req.params.driverId
+        );
+
+        return successResponse(
+            res,
+            200,
+            "Driver details retrieved successfully.",
+            data
+        );
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const getPassengerDetails = async (req, res, next) => {
+    try {
+        const data = await getPassengerDetailsService(
+            req.params.passengerId
+        );
+
+        return successResponse(
+            res,
+            200,
+            "Passenger details retrieved successfully.",
+            data
+        );
+    } catch (error) {
+        next(error);
+    }
+};
+
+
+
+export const getDrivers = async (req, res, next) => {
+    try {
+
+        const drivers = await getDriversService();
+
+        return successResponse(
+            res,
+            200,
+            "Drivers retrieved successfully.",
+            drivers
+        );
+
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const getPassengers = async (req, res, next) => {
+    try {
+
+        const passengers = await getPassengersService();
+
+        return successResponse(
+            res,
+            200,
+            "Passengers retrieved successfully.",
+            passengers
+        );
+
+    } catch (error) {
+        next(error);
+    }
+};
+
+
+export const reviewPassengerProfile = async (
+    req,
+    res,
+    next
+) => {
+
+    try {
+
+        const document =
+            await reviewPassengerProfileService(
+
+                req.params.passengerId,
+
+                req.body.status,
+
+                req.body.reason
+
+            );
+
+        return successResponse(
+            res,
+            200,
+            "Passenger profile reviewed successfully.",
+            document
         );
 
     } catch (error) {

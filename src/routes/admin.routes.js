@@ -9,6 +9,12 @@ import { ROLES } from "../constants/roles.js";
 import {
     reviewDriverProfile,
     getUsers,
+    updateUserRole,
+    getDriverDetails,
+    getPassengerDetails,
+    getDrivers,
+    getPassengers,
+    reviewPassengerProfile
 } from "../controllers/admin.controller.js";
 
 import {
@@ -19,6 +25,7 @@ import {
 
 import {
     reviewValidator,
+    updateUserRoleValidator,
 } from "../validators/admin.validator.js";
 import {
     getAllInspectionsForReview,
@@ -28,11 +35,24 @@ import {
 
 import {reviewInspectionValidator} from "../validators/vehicleInspection.validator.js"
 
+
 const router = express.Router();
 
 
 // DRIVER REVIEW
+router.get(
+    "/drivers",
+    protect,
+    authorize(ROLES.PLATFORM_ADMIN),
+    getDrivers
+);
 
+router.get(
+    "/drivers/:driverId",
+    protect,
+    authorize(ROLES.PLATFORM_ADMIN),
+    getDriverDetails
+);
 router.patch(
     "/drivers/:driverId",
     protect,
@@ -40,6 +60,30 @@ router.patch(
     reviewValidator,
     validate,
     reviewDriverProfile
+);
+
+// PASSENGER REVIEW
+router.get(
+    "/passengers",
+    protect,
+    authorize(ROLES.PLATFORM_ADMIN),
+    getPassengers
+);
+
+router.get(
+    "/passengers/:passengerId",
+    protect,
+    authorize(ROLES.PLATFORM_ADMIN),
+    getPassengerDetails
+);
+
+router.patch(
+    "/passengers/:passengerId",
+    protect,
+    authorize(ROLES.PLATFORM_ADMIN),
+    reviewValidator,
+    validate,
+    reviewPassengerProfile
 );
 
 
@@ -89,7 +133,6 @@ router.patch(
     "/inspections/:id",
     protect,
     authorize(ROLES.PLATFORM_ADMIN),
-    // reviewValidator,
     reviewInspectionValidator,
     validate,
     reviewInspection
@@ -100,6 +143,15 @@ router.get(
     protect,
     authorize(ROLES.PLATFORM_ADMIN),
     getUsers
+);
+
+router.patch(
+    "/users/:id/role",
+    protect,
+    authorize(ROLES.PLATFORM_ADMIN),
+    updateUserRoleValidator,
+    validate,
+    updateUserRole
 );
 
 export default router;

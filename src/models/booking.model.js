@@ -1,30 +1,61 @@
 import { DataTypes } from "sequelize";
 import sequelize from "../config/database.js";
 
-const Booking = sequelize.define( 
+const Booking = sequelize.define(
     "Booking",
     {
-        id:{
+        id: {
             type: DataTypes.UUID,
             defaultValue: DataTypes.UUIDV4,
             primaryKey: true,
         },
-        numberOfSeats:{
+        passengerId: {
+            type: DataTypes.UUID,
+            allowNull: false,
+        },
+
+        rideId: {
+            type: DataTypes.UUID,
+            allowNull: false,
+        },
+
+        bookingReference: {
+            type: DataTypes.STRING,
+            unique: true,
+        },
+
+        numberOfSeats: {
             type: DataTypes.INTEGER,
             allowNull: false,
             defaultValue: 1,
         },
+
+        fare: {
+            type: DataTypes.DECIMAL(10,2),
+            allowNull: false,
+        },
+
         bookingStatus: {
             type: DataTypes.ENUM(
-            "PENDING",
-            "CONFIRMED",
-            "CANCELLED",
-            "COMPLETED"
+                "PENDING",
+                "CONFIRMED",
+                "CANCELLED",
+                "COMPLETED"
             ),
             defaultValue: "PENDING",
         },
+
+        cancelledAt: {
+            type: DataTypes.DATE,
+        },
+
+        cancelReason: {
+            type: DataTypes.TEXT,
+        },
     },
-    {timestamps: true,}
+    {
+        timestamps: true,
+    }
 );
 
 export default Booking;

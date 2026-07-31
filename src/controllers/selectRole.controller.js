@@ -21,8 +21,7 @@ export const selectRole = async (
         );
 
     } catch (error) {
-        console.log(error);
-    console.log(error.errors);
+  
         next(error);
     }
 };

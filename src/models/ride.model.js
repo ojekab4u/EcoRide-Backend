@@ -49,6 +49,10 @@ const Ride = sequelize.define(
       type: DataTypes.INTEGER,
       allowNull: false,
     },
+    remainingSeats: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+},
 
     pricePerSeat: {
       type: DataTypes.DECIMAL(10, 2),
@@ -64,6 +68,18 @@ const Ride = sequelize.define(
       ),
       defaultValue: "SCHEDULED",
     },
+    isRecurring: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+},
+    recurrenceType: {
+      type: DataTypes.ENUM(
+          "DAILY",
+          "WEEKLY",
+          "MONTHLY"
+      ),
+      allowNull: true,
+},
   },
   {
     timestamps: true,

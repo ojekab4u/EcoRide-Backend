@@ -9,10 +9,12 @@ export const selectRoleValidator = [
 
         .customSanitizer((value) => value.toUpperCase())
 
-        .isIn([
-            ROLES.PASSENGER,
-            ROLES.DRIVER,
-            ROLES.CORPORATE_ADMIN,
+         .isIn([
+            "DRIVER",
+            "PASSENGER",
         ])
-        .withMessage("Invalid role."),
+        .withMessage(
+            "Role must be DRIVER or PASSENGER."
+        ),
+
 ];
