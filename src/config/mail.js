@@ -9,9 +9,15 @@ const transporter = nodemailer.createTransport({
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
     },
+
+    family: 4,
+
+    tls: {
+        rejectUnauthorized: false,
+    },
 });
 
-transporter.verify((error, success) => {
+transporter.verify((error) => {
     if (error) {
         console.error("SMTP ERROR:", error);
     } else {
