@@ -91,7 +91,7 @@ EcoRide_Backend
 Clone the repository
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/EcoRide_Backend.git
+git clone https://github.com/ojekab4u/EcoRide-Backend.git
 ```
 
 Enter the project
