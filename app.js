@@ -81,3 +81,18 @@ app.use(errorHandler);
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+
+const express = require('express');
+const app = express();
+
+app.use(express.json());
+
+// Import routes
+const driverRoutes = require('./routes/driver.routes');
+const vehicleRoutes = require('./routes/vehicle.routes');
+
+// Use routes
+app.use('/api/drivers', driverRoutes);
+app.use('/api/vehicles', vehicleRoutes);
+
+module.exports = app;
