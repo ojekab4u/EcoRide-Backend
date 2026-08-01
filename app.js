@@ -6,7 +6,7 @@ import rideRoutes from "./src/routes/ride.routes.js";
 import bookingRoutes from "./src/routes/booking.routes.js";
 import paymentRoutes from "./src/routes/payment.routes.js";
 import driverRoutes from "./src/routes/driver.routes.js";
-
+import mapsRoutes from "./src/routes/maps.routes.js";
 import vehicleRoutes from "./src/routes/vehicle.routes.js";
 import driverDocumentRoutes from "./src/routes/driverDocument.routes.js";
 import vehicleInspectionRoutes from "./src/routes/vehicleInspection.routes.js";
@@ -27,7 +27,7 @@ import tripRoutes from "./src/routes/trip.routes.js";
 import dashboardRoutes from "./src/routes/dashboard.routes.js";
 import notificationRoutes from "./src/routes/notification.routes.js";
 import earningRoutes from "./src/routes/earning.routes.js";
-
+import requestLogger from "./src/middlewares/requestLogger.middleware.js";
 
 
 const app = express();
@@ -44,7 +44,7 @@ const PORT = process.env.PORT || 3000;
 
 
 app.use(express.json());
-
+app.use(requestLogger);
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/rides", rideRoutes);
@@ -71,6 +71,8 @@ app.use(
   "/api/v1/passenger-documents",
   passengerDocumentRoutes
 );
+app.use("/api/v1/maps", mapsRoutes);
+
 // app.use("/api/v1/wallets", walletRoutes);
 // app.use("/api/v1/ratings", ratingRoutes);
 app.use("/api/v1/test", testRoutes);
