@@ -1,5 +1,6 @@
 import { Op } from "sequelize";
-
+import User from "../models/user.model.js";
+import Booking from "../models/booking.model.js";
 import Ride from "../models/ride.model.js";
 import Vehicle from "../models/vehicle.model.js";
 import DriverProfile from "../models/driver.model.js";
@@ -206,85 +207,96 @@ export const deleteRideService = async (
 };
 
 
-export const startRideService = async (
-    userId,
-    rideId
-) => {
 
-    const ride =
-        await getRideByIdService(
-            userId,
-            rideId
-        );
 
-    if (ride.status !== "SCHEDULED") {
-
-        throw new AppError(
-            "Ride has already started.",
-            400
-        );
-
-    }
-
-    ride.status = "ONGOING";
-
-    await ride.save();
-
-    return ride;
-
-};
-
-export const completeRideService = async (
-    userId,
-    rideId
-) => {
-
-    const ride =
-        await getRideByIdService(
-            userId,
-            rideId
-        );
-
-    if (ride.status !== "ONGOING") {
-
-        throw new AppError(
-            "Ride must be ongoing.",
-            400
-        );
-
-    }
-
-    ride.status = "COMPLETED";
-
-    await ride.save();
-
-    return ride;
-
-};
 
 export const cancelRideService = async (
     userId,
     rideId
 ) => {
 
-    const ride =
-        await getRideByIdService(
-            userId,
-            rideId
-        );
+    // Find driver
+    const driver = await DriverProfile.findOne({
+        where: { userId }
+    });
 
-    if (ride.status !== "SCHEDULED") {
-
+    if (!driver) {
         throw new AppError(
-            "Only scheduled rides can be cancelled.",
-            400
+            "Driver profile not found.",
+            404
         );
-
     }
 
-    ride.status = "CANCELLED";
+    // Find ride
+    const ride = await Ride.findByPk(rideId);
 
+    if (!ride) {
+        throw new AppError(
+            "Ride not found.",
+            404
+        );
+    }
+
+    // Find vehicle
+    const vehicle = await Vehicle.findByPk(
+        ride.vehicleId
+    );
+
+    if (!vehicle) {
+        throw new AppError(
+            "Vehicle not found.",
+            404
+        );
+    }
+
+    // Ownership check
+    if (vehicle.driverId !== driver.id) {
+        throw new AppError(
+            "Unauthorized.",
+            403
+        );
+    }
+
+    if (ride.status === "COMPLETED") {
+        throw new AppError(
+            "Completed ride cannot be cancelled.",
+            400
+        );
+    }
+
+    if (ride.status === "CANCELLED") {
+        throw new AppError(
+            "Ride already cancelled.",
+            400
+        );
+    }
+
+    // Cancel ride
+    ride.status = "CANCELLED";
     await ride.save();
+
+    // Cancel every pending/confirmed booking
+    const bookings = await Booking.findAll({
+        where: {
+            rideId,
+            bookingStatus: {
+                [Op.in]: [
+                    "PENDING",
+                    "CONFIRMED"
+                ]
+            }
+        }
+    });
+
+    for (const booking of bookings) {
+
+        booking.bookingStatus = "CANCELLED";
+        booking.cancelReason =
+            "Ride cancelled by driver.";
+        booking.cancelledAt = new Date();
+
+        await booking.save();
+    }
 
     return ride;
 
@@ -360,22 +372,11 @@ export const searchRidesService = async (
     }
 
     if (departureDate) {
-
-        const start = new Date(departureDate);
-
-        const end = new Date(departureDate);
-
-        end.setDate(
-            end.getDate() + 1
-        );
-
         where.departureTime = {
-
             [Op.between]: [
-                start,
-                end,
-            ],
-
+                new Date(`${departureDate}T00:00:00`),
+                new Date(`${departureDate}T23:59:59`)
+            ]
         };
 
     }
@@ -388,7 +389,20 @@ export const searchRidesService = async (
         where,
 
         include: [
-            Vehicle,
+            {
+
+                model: Vehicle,
+
+                include: [
+                    {
+                        model: DriverProfile,
+                        include: [User]
+                    }
+
+                ]
+
+            }
+
         ],
 
         order: [
@@ -414,5 +428,166 @@ export const searchRidesService = async (
         pagination.limit
 
     );
+
+};
+
+export const startRideService = async (
+    userId,
+    rideId
+) => {
+
+    const driver = await DriverProfile.findOne({
+        where: { userId }
+    });
+
+    if (!driver) {
+        throw new AppError(
+            "Driver profile not found.",
+            404
+        );
+    }
+
+    const ride = await Ride.findByPk(rideId);
+
+    if (!ride) {
+        throw new AppError(
+            "Ride not found.",
+            404
+        );
+    }
+
+    const vehicle = await Vehicle.findByPk(
+        ride.vehicleId
+    );
+
+    if (!vehicle) {
+        throw new AppError(
+            "Vehicle not found.",
+            404
+        );
+    }
+
+    if (vehicle.driverId !== driver.id) {
+        throw new AppError(
+            "Unauthorized.",
+            403
+        );
+    }
+
+    if (ride.status === "ONGOING") {
+        throw new AppError(
+            "Ride already started.",
+            400
+        );
+    }
+
+    if (ride.status === "COMPLETED") {
+        throw new AppError(
+            "Ride already completed.",
+            400
+        );
+    }
+
+    if (ride.status === "CANCELLED") {
+        throw new AppError(
+            "Cancelled ride cannot be started.",
+            400
+        );
+    }
+
+    ride.status = "ONGOING";
+
+    await ride.save();
+
+    return ride;
+
+};
+
+export const completeRideService = async (
+    userId,
+    rideId
+) => {
+
+    // Find driver
+    const driver = await DriverProfile.findOne({
+        where: { userId },
+    });
+
+    if (!driver) {
+        throw new AppError(
+            "Driver profile not found.",
+            404
+        );
+    }
+
+    // Find ride
+    const ride = await Ride.findByPk(rideId);
+
+    if (!ride) {
+        throw new AppError(
+            "Ride not found.",
+            404
+        );
+    }
+
+    // Find vehicle
+    const vehicle = await Vehicle.findByPk(
+        ride.vehicleId
+    );
+
+    if (!vehicle) {
+        throw new AppError(
+            "Vehicle not found.",
+            404
+        );
+    }
+
+    // Ownership check
+    if (vehicle.driverId !== driver.id) {
+        throw new AppError(
+            "Unauthorized.",
+            403
+        );
+    }
+
+    if (ride.status === "COMPLETED") {
+        throw new AppError(
+            "Ride already completed.",
+            400
+        );
+    }
+
+    if (ride.status === "CANCELLED") {
+        throw new AppError(
+            "Cancelled ride cannot be completed.",
+            400
+        );
+    }
+
+    if (ride.status !== "ONGOING") {
+        throw new AppError(
+            "Only ongoing rides can be completed.",
+            400
+        );
+    }
+
+    // Complete ride
+    ride.status = "COMPLETED";
+    await ride.save();
+
+    // Complete all confirmed bookings
+    await Booking.update(
+        {
+            bookingStatus: "COMPLETED",
+        },
+        {
+            where: {
+                rideId,
+                bookingStatus: "CONFIRMED",
+            },
+        }
+    );
+
+    return ride;
 
 };

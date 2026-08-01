@@ -8,14 +8,18 @@ import { ROLES } from "../constants/roles.js";
 
 import {
     createBooking,
-    getMyBookings,
+    getBookings,
     getBookingById,
     cancelBooking,
     confirmBooking,
+    getDriverBookings,
+    rejectBooking,
 } from "../controllers/booking.controller.js";
 
 import {
     createBookingValidator,
+    cancelBookingValidator,
+    rejectBookingValidator
 } from "../validators/booking.validator.js";
 
 const router = express.Router();
@@ -30,11 +34,16 @@ router.post(
 );
 
 router.get(
-    "/my-bookings",
+    "/",
     protect,
-    getMyBookings
+    getBookings
 );
-
+router.get(
+    "/driver",
+    protect,
+    authorize(ROLES.DRIVER),
+    getDriverBookings
+);
 router.get(
     "/:id",
     protect,
@@ -44,14 +53,28 @@ router.get(
 router.patch(
     "/:id/cancel",
     protect,
+    authorize(ROLES.PASSENGER),
+    cancelBookingValidator,
+    validate,
     cancelBooking
 );
 
 router.patch(
     "/:id/confirm",
     protect,
-    authorize(ROLES.DRIVER),
+    authorize(
+        ROLES.DRIVER,
+        ROLES.PLATFORM_ADMIN
+    ),
     confirmBooking
 );
 
+router.patch(
+    "/:id/reject",
+    protect,
+    authorize(ROLES.DRIVER),
+    rejectBookingValidator,
+    validate,
+    rejectBooking
+);
 export default router;

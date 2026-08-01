@@ -12,9 +12,9 @@ import {
     getRideById,
     updateRide,
     deleteRide,
-    startRide,
     completeRide,
     cancelRide,
+    startRide,
     getDriverRideHistory,
     searchRides,
 } from "../controllers/ride.controller.js";
@@ -44,6 +44,8 @@ router.get(
 );
 router.get(
     "/search",
+    protect,
+    authorize(ROLES.PASSENGER),
     searchRides
 );
 router.get("/:id", getRideById);
@@ -64,6 +66,15 @@ router.delete(
     deleteRide
 );
 
+
+
+router.patch(
+    "/:id/cancel",
+    protect,
+    authorize(ROLES.DRIVER),
+    cancelRide
+);
+
 router.patch(
     "/:id/start",
     protect,
@@ -77,14 +88,4 @@ router.patch(
     authorize(ROLES.DRIVER),
     completeRide
 );
-
-router.patch(
-    "/:id/cancel",
-    protect,
-    authorize(ROLES.DRIVER),
-    cancelRide
-);
-
-
-
 export default router;

@@ -11,3 +11,21 @@ export const createBookingValidator = [
         .withMessage("Number of seats must be at least 1."),
 
 ];
+
+export const cancelBookingValidator = [
+
+    body("reason")
+        .optional()
+        .trim(),
+
+];
+
+
+export const rejectBookingValidator = [
+
+    body("reason")
+        .trim()
+        .notEmpty()
+        .withMessage("Rejection reason is required."),
+
+];

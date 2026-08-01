@@ -1,40 +1,50 @@
 import {
     createBookingService,
-    getMyBookingsService,
+    getBookingsService,
     getBookingByIdService,
     cancelBookingService,
     confirmBookingService,
+    getDriverBookingsService,
+    rejectBookingsService,
+    
 } from "../services/booking.service.js";
 
 import { successResponse } from "../utils/response.js";
 
-export const createBooking = async (req, res, next) => {
+export const createBooking = async (
+    req,
+    res,
+    next
+) => {
+
     try {
 
-        const booking = await createBookingService(
-            req.user.id,
-            req.body
-        );
+        const booking =
+            await createBookingService(
+                req.user.id,
+                req.body
+            );
 
         return successResponse(
             res,
             201,
-            "Booking created successfully.",
+            "Ride booked successfully.",
             booking
         );
 
     } catch (error) {
+
         next(error);
+
     }
+
 };
 
-export const getMyBookings = async (req, res, next) => {
+export const getBookings = async (req, res, next) => {
     try {
 
-        const bookings = await getMyBookingsService(
-            req.user.id,
-            req.query
-        );
+        const bookings = await getBookingsService(
+            req.user);
 
         return successResponse(
             res,
@@ -50,31 +60,33 @@ export const getMyBookings = async (req, res, next) => {
 
 export const getBookingById = async (req, res, next) => {
     try {
-
         const booking = await getBookingByIdService(
-            req.user.id,
             req.params.id
         );
-
         return successResponse(
             res,
             200,
             "Booking retrieved successfully.",
             booking
         );
-
     } catch (error) {
         next(error);
     }
 };
 
-export const cancelBooking = async (req, res, next) => {
+export const cancelBooking = async (
+    req,
+    res,
+    next
+) => {
+
     try {
 
-        const booking = await cancelBookingService(
-            req.user.id,
-            req.params.id
-        );
+        const booking =
+            await cancelBookingService(
+                req.params.id,
+                req.body.reason
+            );
 
         return successResponse(
             res,
@@ -84,17 +96,25 @@ export const cancelBooking = async (req, res, next) => {
         );
 
     } catch (error) {
+
         next(error);
+
     }
+
 };
 
-export const confirmBooking = async (req, res, next) => {
+export const confirmBooking = async (
+    req,
+    res,
+    next
+) => {
+
     try {
 
-        const booking = await confirmBookingService(
-            req.user.id,
-            req.params.id
-        );
+        const booking =
+            await confirmBookingService(
+                req.params.id
+            );
 
         return successResponse(
             res,
@@ -104,6 +124,67 @@ export const confirmBooking = async (req, res, next) => {
         );
 
     } catch (error) {
+
         next(error);
+
     }
+
+};
+
+export const getDriverBookings = async (
+    req,
+    res,
+    next
+) => {
+
+    try {
+
+        const bookings =
+            await getDriverBookingsService(
+                req.user.id
+            );
+
+        return successResponse(
+            res,
+            200,
+            "Driver bookings retrieved successfully.",
+            bookings
+        );
+
+    } catch (error) {
+
+        next(error);
+
+    }
+
+};
+
+export const rejectBooking = async (
+    req,
+    res,
+    next
+) => {
+
+    try {
+
+        const booking =
+            await rejectBookingsService(
+                req.user.id,
+                req.params.id,
+                req.body.reason
+            );
+            
+        return successResponse(
+            res,
+            200,
+            "Booking rejected successfully.",
+            booking
+        );
+
+    } catch (error) {
+
+        next(error);
+
+    }
+
 };

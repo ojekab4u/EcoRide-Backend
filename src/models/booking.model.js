@@ -39,6 +39,7 @@ const Booking = sequelize.define(
             type: DataTypes.ENUM(
                 "PENDING",
                 "CONFIRMED",
+                "REJECTED",
                 "CANCELLED",
                 "COMPLETED"
             ),
