@@ -8,6 +8,7 @@ import {
     completeRideService,
     cancelRideService,
     getDriverRideHistoryService,
+    searchRidesService,
 } from "../services/ride.service.js";
 
 import { successResponse } from "../utils/response.js";
@@ -155,6 +156,35 @@ export const deleteRide = async (
 
 };
 
+
+
+
+export const cancelRide = async (
+    req,
+    res,
+    next
+) => {
+    try {
+        const ride =
+            await cancelRideService(
+                req.user.id,
+                req.params.id
+            );
+
+        return successResponse(
+            res,
+            200,
+            "Ride cancelled successfully.",
+            ride
+        );
+
+    } catch (error) {
+        next(error);
+
+    }
+
+};
+
 export const startRide = async (
     req,
     res,
@@ -213,35 +243,6 @@ export const completeRide = async (
 
 };
 
-export const cancelRide = async (
-    req,
-    res,
-    next
-) => {
-
-    try {
-
-        const ride =
-            await cancelRideService(
-                req.user.id,
-                req.params.id
-            );
-
-        return successResponse(
-            res,
-            200,
-            "Ride cancelled successfully.",
-            ride
-        );
-
-    } catch (error) {
-
-        next(error);
-
-    }
-
-};
-
 export const getDriverRideHistory = async (
     req,
     res,
@@ -270,21 +271,21 @@ export const getDriverRideHistory = async (
 
 };
 
-
 export const searchRides = async (
-    req, res, next
+    req,
+    res,
+    next
 ) => {
 
     try {
+
         const rides =
-            await searchRidesService(
-                req.query
-            );
+            await searchRidesService(req.query);
 
         return successResponse(
             res,
             200,
-            "Matching rides retrieved successfully.",
+            "Available rides retrieved successfully.",
             rides
         );
 

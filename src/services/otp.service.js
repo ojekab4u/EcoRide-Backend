@@ -34,9 +34,11 @@ export const sendEmailOTPService = async (email) => {
         purpose: "EMAIL_VERIFICATION",
         expiresAt: new Date(Date.now() + 10 * 60 * 1000),
     });
-
-    await sendOTPEmail(email, code);
-    console.log("EMAIL OTP:", code);
+try {
+    await sendOTPEmail(user.email, code);
+} catch (error) {
+    console.error("Failed to send OTP email:", error);
+}
 
     return;
 };
