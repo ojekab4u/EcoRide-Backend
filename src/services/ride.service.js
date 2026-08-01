@@ -5,7 +5,7 @@ import Ride from "../models/ride.model.js";
 import Vehicle from "../models/vehicle.model.js";
 import DriverProfile from "../models/driver.model.js";
 
-import AppError from "../utils/appError.js";
+import AppError from "../utils/AppError.js";
 import { paginate, getPagingData } from "../utils/pagination.js";
 
 
