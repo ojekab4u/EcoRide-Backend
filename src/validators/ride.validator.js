@@ -40,6 +40,14 @@ export const createRideValidator = [
         .isFloat({ min: 0 })
         .withMessage("Price per seat must be greater than or equal to 0."),
 
+    body("allowRecurringBooking")
+        .optional()
+        .isBoolean()
+        .withMessage("allowRecurringBooking must be true or false."),
+    
+    body("vehicleId")
+    .notEmpty()
+    .withMessage("Vehicle ID is required.")
 ];
 
 export const updateRideValidator = [
@@ -79,5 +87,26 @@ export const updateRideValidator = [
     body("pricePerSeat")
         .optional()
         .isFloat({ min: 0 }),
+
+    body("allowRecurringBooking")
+        .optional()
+        .isBoolean()
+        .withMessage("allowRecurringBooking must be true or false."),
+];
+export const updateRideLocationValidator = [
+
+    body("latitude")
+        .isFloat({
+            min: -90,
+            max: 90,
+        })
+        .withMessage("Valid latitude is required."),
+
+    body("longitude")
+        .isFloat({
+            min: -180,
+            max: 180,
+        })
+        .withMessage("Valid longitude is required."),
 
 ];

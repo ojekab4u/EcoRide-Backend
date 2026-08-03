@@ -9,6 +9,9 @@ import {
     cancelRideService,
     getDriverRideHistoryService,
     searchRidesService,
+    driverArrivedService,
+    updateRideLocationService,
+    getRideLocationService
 } from "../services/ride.service.js";
 
 import { successResponse } from "../utils/response.js";
@@ -78,6 +81,9 @@ export const getRideById = async (
 
     try {
 
+        console.log("USER:", req.user);
+        console.log("PARAMS:", req.params);
+
         const ride =
             await getRideByIdService(
                 req.user.id,
@@ -93,12 +99,13 @@ export const getRideById = async (
 
     } catch (error) {
 
+        console.error(error);
+
         next(error);
 
     }
 
 };
-
 export const updateRide = async (
     req,
     res,
@@ -155,9 +162,6 @@ export const deleteRide = async (
     }
 
 };
-
-
-
 
 export const cancelRide = async (
     req,
@@ -290,6 +294,115 @@ export const searchRides = async (
         );
 
     } catch (error) {
+
+        next(error);
+
+    }
+
+};
+
+export const driverArrived = async (
+    req,
+    res,
+    next
+) => {
+
+    try {
+
+        const ride =
+            await driverArrivedService(
+                req.user.id,
+                req.params.id
+            );
+
+        return successResponse(
+            res,
+            200,
+            "Driver arrival recorded.",
+            ride
+        );
+
+    } catch (error) {
+
+        next(error);
+
+    }
+
+};
+
+export const updateRideLocation = async (
+    req,
+    res,
+    next
+) => {
+
+    try {
+
+        const ride =
+            await updateRideLocationService(
+
+                req.user.id,
+
+                req.params.id,
+
+                req.body
+
+            );
+
+        return successResponse(
+
+            res,
+
+            200,
+
+            "Location updated.",
+
+            ride
+
+        );
+
+    }
+
+    catch (error) {
+
+        next(error);
+
+    }
+
+};
+
+export const getRideLocation = async (
+    req,
+    res,
+    next
+) => {
+
+    try {
+
+        const location =
+            await getRideLocationService(
+
+                req.user.id,
+
+                req.params.id
+
+            );
+
+        return successResponse(
+
+            res,
+
+            200,
+
+            "Ride location retrieved.",
+
+            location
+
+        );
+
+    }
+
+    catch (error) {
 
         next(error);
 

@@ -17,11 +17,15 @@ import {
     startRide,
     getDriverRideHistory,
     searchRides,
+    driverArrived,
+    getRideLocation,
+    updateRideLocation,
 } from "../controllers/ride.controller.js";
 
 import {
     createRideValidator,
     updateRideValidator,
+    updateRideLocationValidator,
 } from "../validators/ride.validator.js";
 
 const router = express.Router();
@@ -48,7 +52,11 @@ router.get(
     authorize(ROLES.PASSENGER),
     searchRides
 );
-router.get("/:id", getRideById);
+router.get(
+    "/:id",
+    protect,    
+    getRideById
+);
 
 router.patch(
     "/:id",
@@ -74,6 +82,12 @@ router.patch(
     authorize(ROLES.DRIVER),
     cancelRide
 );
+router.patch(
+    "/:id/arrive",
+    protect,
+    authorize(ROLES.DRIVER),
+    driverArrived
+);
 
 router.patch(
     "/:id/start",
@@ -87,5 +101,19 @@ router.patch(
     protect,
     authorize(ROLES.DRIVER),
     completeRide
+);
+router.patch(
+    "/:id/location",
+    protect,
+    authorize(ROLES.DRIVER),
+    updateRideLocationValidator,
+    validate,
+    updateRideLocation
+);
+router.get(
+    "/:id/location",
+    protect,
+    authorize(ROLES.PASSENGER),
+    getRideLocation
 );
 export default router;

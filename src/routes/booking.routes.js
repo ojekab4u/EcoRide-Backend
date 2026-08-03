@@ -14,6 +14,7 @@ import {
     confirmBooking,
     getDriverBookings,
     rejectBooking,
+    acknowledgeDriverArrival,
 } from "../controllers/booking.controller.js";
 
 import {
@@ -68,6 +69,13 @@ router.patch(
     ),
     confirmBooking
 );
+router.patch(
+    "/:id/acknowledge",
+    protect,
+    authorize(ROLES.PASSENGER),
+    acknowledgeDriverArrival
+);
+
 
 router.patch(
     "/:id/reject",

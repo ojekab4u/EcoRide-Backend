@@ -33,8 +33,7 @@ const Booking = sequelize.define(
         fare: {
             type: DataTypes.DECIMAL(10,2),
             allowNull: false,
-        },
-
+        },   
         bookingStatus: {
             type: DataTypes.ENUM(
                 "PENDING",
@@ -45,6 +44,15 @@ const Booking = sequelize.define(
             ),
             defaultValue: "PENDING",
         },
+        passengerAcknowledged: {
+            type: DataTypes.BOOLEAN,
+            defaultValue: false,
+        },
+
+        acknowledgedAt: {
+            type: DataTypes.DATE,
+            allowNull: true,
+        },
 
         cancelledAt: {
             type: DataTypes.DATE,
@@ -53,7 +61,28 @@ const Booking = sequelize.define(
         cancelReason: {
             type: DataTypes.TEXT,
         },
-    },
+        isRecurring: {
+            type: DataTypes.BOOLEAN,
+            defaultValue: false,
+        },
+        recurrenceDays: {
+            type: DataTypes.JSON,
+            allowNull: true,
+        },
+        recurrenceStartDate: {
+            type: DataTypes.DATEONLY,
+            allowNull: true,
+        },
+        recurrenceEndDate: {
+            type: DataTypes.DATEONLY,
+            allowNull: true,
+        },
+        travelDate: {
+            type: DataTypes.DATEONLY,
+            allowNull: true,
+        },
+     },
+       
     {
         timestamps: true,
     }
