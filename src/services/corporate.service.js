@@ -1,6 +1,7 @@
 import CorporateProfile from "../models/corporateProfile.model.js";
 import User from "../models/user.model.js";
 import AppError from "../utils/AppError.js";
+import CorporateDocument from "../models/corporateDocument.model.js";
 
 export const createCorporateProfileService = async (
     userId,

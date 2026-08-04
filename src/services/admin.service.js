@@ -14,7 +14,7 @@ import PassengerDocument from "../models/passengerDocument.model.js";
 import EmergencyContact from "../models/emergencyContact.model.js";
 import CorporateProfile from "../models/corporateProfile.model.js";
 import CorporateDocument from "../models/corporateDocument.model.js";
-
+import { createNotification } from "./notification.service.js";
 
 export const reviewDriverProfileService = async (
     driverId,
@@ -49,6 +49,14 @@ export const reviewDriverProfileService = async (
     }
 
     await profile.save();
+
+    await createNotification({
+    userId: driver.userId,
+    title: "Driver Approved",
+    message: "Your driver profile has been approved.",
+    type: "SYSTEM",
+    referenceId: driver.id,
+});
 
     return profile;
 
@@ -375,6 +383,13 @@ export const reviewPassengerProfileService = async (
         user.isVerified = status === "APPROVED";
 
         await user.save();
+        await createNotification({
+        userId: passenger.userId,
+        title: "Profile Approved",
+        message: "Your passenger profile has been approved.",
+        type: "SYSTEM",
+        referenceId: passenger.id,
+    });
 
     }
 
@@ -510,6 +525,14 @@ export const reviewCorporateProfileService = async (
 
     await document.save();
     await corporate.save();
+    await createNotification({
+   
+    userId: user.id,
+    title: "Corporate Profile Rejected",
+    message: reason,
+    type: "CORPORATE",
+    referenceId: corporate.id,
+});
 
     const user = await User.findByPk(
         corporate.userId
@@ -521,6 +544,13 @@ export const reviewCorporateProfileService = async (
             status === "APPROVED";
 
         await user.save();
+        await createNotification({
+        userId: user.id,
+        title: "Corporate Profile Approved",
+        message: "Your corporate profile has been approved.",
+        type: "CORPORATE",
+        referenceId: corporate.id,
+    });
 
     }
 
