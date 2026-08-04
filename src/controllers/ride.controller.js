@@ -79,11 +79,7 @@ export const getRideById = async (
     next
 ) => {
 
-    try {
-
-        console.log("USER:", req.user);
-        console.log("PARAMS:", req.params);
-
+    try {       
         const ride =
             await getRideByIdService(
                 req.user.id,

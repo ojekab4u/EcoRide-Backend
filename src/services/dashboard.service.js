@@ -77,7 +77,7 @@ export const getDriverDashboardService = async (
                 rideId: {
                     [Op.in]: rideIds,
                 },
-                bookingStatus: "CONFIRMED",
+                bookingStatus: "ACCEPTED",
             },
         });
 
@@ -104,7 +104,7 @@ export const getPassengerDashboardService = async (
     const upcomingTrips = await Booking.count({
         where: {
             passengerId: userId,
-            bookingStatus: "CONFIRMED",
+            bookingStatus: "ACCEPTED",
         },
     });
 

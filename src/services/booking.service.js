@@ -125,7 +125,7 @@ if ( numberOfSeats > availableSeats)
                 bookingStatus: {
                     [Op.in]: [
                         "PENDING",
-                        "CONFIRMED",
+                        "ACCEPTED",
                     ],
                 },
 
@@ -307,11 +307,12 @@ export const cancelBookingService = async (
     return booking;
 };
 
-export const confirmBookingService = async (
+export const acceptBookingService = async (
     id
 ) => {
 
-    const booking = await Booking.findByPk(id);
+    const booking =
+        await Booking.findByPk(id);
 
     if (!booking) {
 
@@ -322,15 +323,45 @@ export const confirmBookingService = async (
 
     }
 
+    if (
+        booking.bookingStatus !==
+        "PENDING"
+    ) {
+
+        throw new AppError(
+            "Booking has already been processed.",
+            400
+        );
+
+    }
+
     booking.bookingStatus =
-        "CONFIRMED";
+        "ACCEPTED";
 
     await booking.save();
+
+    // Update ride status
+    const ride =
+        await Ride.findByPk(
+            booking.rideId
+        );
+
+    if (
+        ride &&
+        ride.status ===
+            "SCHEDULED"
+    ) {
+
+        ride.status =
+            "ACCEPTED";
+
+        await ride.save();
+
+    }
 
     return booking;
 
 };
-
 
 export const getRideBookingsService = async (
     userId,

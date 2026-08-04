@@ -12,6 +12,9 @@ import VehicleInspection from "../models/vehicleInspection.model.js";
 import PassengerProfile from "../models/passengerProfile.model.js";
 import PassengerDocument from "../models/passengerDocument.model.js";
 import EmergencyContact from "../models/emergencyContact.model.js";
+import CorporateProfile from "../models/corporateProfile.model.js";
+import CorporateDocument from "../models/corporateDocument.model.js";
+
 
 export const reviewDriverProfileService = async (
     driverId,
@@ -376,4 +379,154 @@ export const reviewPassengerProfileService = async (
     }
 
     return document;
+};
+
+export const getCorporatesService = async () => {
+
+    return await CorporateProfile.findAll({
+
+        include: [
+
+            {
+                model: User,
+                attributes: [
+                    "id",
+                    "firstName",
+                    "lastName",
+                    "email",
+                    "phoneNumber",
+                    "isVerified",
+                ],
+            },
+
+            {
+                model: CorporateDocument,
+            },
+
+        ],
+
+        order: [
+            ["createdAt", "DESC"],
+        ],
+
+    });
+
+};
+
+export const getCorporateDetailsService = async (
+    corporateId
+) => {
+
+    const corporate =
+        await CorporateProfile.findByPk(
+            corporateId
+        );
+
+    if (!corporate) {
+
+        throw new AppError(
+            "Corporate profile not found.",
+            404
+        );
+
+    }
+
+    const user =
+        await User.findByPk(
+            corporate.userId
+        );
+
+    const documents =
+        await CorporateDocument.findOne({
+
+            where: {
+                corporateProfileId:
+                    corporate.id,
+            },
+
+        });
+
+    return {
+
+        user,
+
+        corporate,
+
+        documents,
+
+    };
+
+};
+
+export const reviewCorporateProfileService = async (
+    corporateId,
+    status,
+    reason
+) => {
+
+    const corporate = await CorporateProfile.findByPk(
+        corporateId
+    );
+
+    if (!corporate) {
+        throw new AppError(
+            "Corporate profile not found.",
+            404
+        );
+    }
+
+    const document = await CorporateDocument.findOne({
+        where: {
+            corporateProfileId: corporate.id,
+        },
+    });
+
+    if (!document) {
+        throw new AppError(
+            "Corporate document not found.",
+            404
+        );
+    }
+
+    // Update BOTH the document and the profile
+    document.verificationStatus = status;
+    corporate.verificationStatus = status;
+
+    if (status === "REJECTED") {
+
+        document.rejectionReason = reason;
+        corporate.rejectionReason = reason;
+
+        corporate.profileCompleted = false;
+
+    } else {
+
+        document.rejectionReason = null;
+        corporate.rejectionReason = null;
+
+        corporate.profileCompleted = true;
+
+    }
+
+    await document.save();
+    await corporate.save();
+
+    const user = await User.findByPk(
+        corporate.userId
+    );
+
+    if (user) {
+
+        user.isVerified =
+            status === "APPROVED";
+
+        await user.save();
+
+    }
+
+    return {
+        corporate,
+        document,
+    };
+
 };

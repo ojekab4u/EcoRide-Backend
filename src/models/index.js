@@ -14,7 +14,8 @@ import OTP from "./otp.model.js";
 import PassengerProfile from "./passengerProfile.model.js";
 import EmergencyContact from "./emergencyContact.model.js";
 import PassengerDocument from "./passengerDocument.model.js";
-
+import CorporateProfile from "./corporateProfile.model.js";
+import CorporateDocument from "./corporateDocument.model.js";
 
 // USER RELATIONSHIPS
 User.hasOne(DriverProfile, {
@@ -175,6 +176,28 @@ PassengerDocument.belongsTo(PassengerProfile, {
     foreignKey: "passengerProfileId",
 });
 
+
+// CORPORATE PROFILE
+
+User.hasOne(CorporateProfile, {
+    foreignKey: "userId",
+    onDelete: "CASCADE",
+});
+
+CorporateProfile.belongsTo(User, {
+    foreignKey: "userId",
+});
+
+CorporateProfile.hasOne(CorporateDocument, {
+    foreignKey: "corporateProfileId",
+    onDelete: "CASCADE",
+});
+
+CorporateDocument.belongsTo(CorporateProfile, {
+    foreignKey: "corporateProfileId",
+});
+
+
 export {
     User,
     DriverProfile,
@@ -191,5 +214,7 @@ export {
     OTP,
     PassengerProfile,
     EmergencyContact,
-    PassengerDocument
+    PassengerDocument,
+    CorporateProfile,
+    CorporateDocument
 };

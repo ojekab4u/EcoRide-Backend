@@ -28,6 +28,7 @@ import dashboardRoutes from "./src/routes/dashboard.routes.js";
 import notificationRoutes from "./src/routes/notification.routes.js";
 import earningRoutes from "./src/routes/earning.routes.js";
 import requestLogger from "./src/middlewares/requestLogger.middleware.js";
+import corporateRoutes from "./src/routes/corporate.routes.js";
 
 
 const app = express();
@@ -57,6 +58,8 @@ app.use("/api/v1/notifications", notificationRoutes);
 app.use("/api/v1/driver/earnings", earningRoutes
 );
 app.use("/api/v1/admin", adminRoutes);
+
+app.use("/api/v1/corporate", corporateRoutes);
 app.use(
   "/api/v1/driver-documents",
   driverDocumentRoutes

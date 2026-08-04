@@ -11,7 +11,7 @@ import {
     getBookings,
     getBookingById,
     cancelBooking,
-    confirmBooking,
+    acceptBooking,
     getDriverBookings,
     rejectBooking,
     acknowledgeDriverArrival,
@@ -61,13 +61,10 @@ router.patch(
 );
 
 router.patch(
-    "/:id/confirm",
+    "/:id/accept",
     protect,
-    authorize(
-        ROLES.DRIVER,
-        ROLES.PLATFORM_ADMIN
-    ),
-    confirmBooking
+    authorize(ROLES.DRIVER),
+    acceptBooking
 );
 router.patch(
     "/:id/acknowledge",

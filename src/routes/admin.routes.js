@@ -7,6 +7,7 @@ import validate from "../middlewares/validate.middleware.js";
 import { ROLES } from "../constants/roles.js";
 
 import {
+
     reviewDriverProfile,
     getUsers,
     updateUserRole,
@@ -14,7 +15,12 @@ import {
     getPassengerDetails,
     getDrivers,
     getPassengers,
-    reviewPassengerProfile
+    reviewPassengerProfile,
+
+    getCorporates,
+    getCorporateDetails,
+    reviewCorporateProfile,
+
 } from "../controllers/admin.controller.js";
 
 import {
@@ -152,6 +158,31 @@ router.patch(
     updateUserRoleValidator,
     validate,
     updateUserRole
+);
+
+// CORPORATE REVIEW
+
+router.get(
+    "/corporates",
+    protect,
+    authorize(ROLES.PLATFORM_ADMIN),
+    getCorporates
+);
+
+router.get(
+    "/corporates/:corporateId",
+    protect,
+    authorize(ROLES.PLATFORM_ADMIN),
+    getCorporateDetails
+);
+
+router.patch(
+    "/corporates/:corporateId",
+    protect,
+    authorize(ROLES.PLATFORM_ADMIN),
+    reviewValidator,
+    validate,
+    reviewCorporateProfile
 );
 
 export default router;

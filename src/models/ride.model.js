@@ -62,6 +62,7 @@ const Ride = sequelize.define(
     status: {
       type: DataTypes.ENUM(
         "SCHEDULED",
+        "ACCEPTED",
         "ONGOING",
         "COMPLETED",
         "CANCELLED"

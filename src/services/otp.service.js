@@ -126,7 +126,6 @@ export const sendPhoneOTPService = async (
         ),
     });
 
-    console.log("PHONE OTP:",code);   
     // await sendSMS(phoneNumber, code);
 };
 

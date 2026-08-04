@@ -2,9 +2,9 @@ import { body } from "express-validator";
 
 export const acknowledgeArrivalValidator = [
 
-    body("confirmed")
+    body("accepted")
         .optional()
         .isBoolean()
-        .withMessage("confirmed must be true or false."),
+        .withMessage("accepted must be true or false."),
 
 ];

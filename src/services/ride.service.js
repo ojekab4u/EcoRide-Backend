@@ -381,7 +381,7 @@ export const cancelRideService = async (
             bookingStatus: {
                 [Op.in]: [
                     "PENDING",
-                    "CONFIRMED"
+                    "ACCEPTED"
                 ]
             }
         }
@@ -628,7 +628,7 @@ export const startRideService = async (
 
             rideId,
 
-            bookingStatus: "CONFIRMED",
+            bookingStatus: "ACCEPTED",
 
         },
 
@@ -745,7 +745,7 @@ export const completeRideService = async (
         {
             where: {
                 rideId,
-                bookingStatus: "CONFIRMED",
+                bookingStatus: "ACCEPTED",
             },
         }
     );
@@ -765,10 +765,19 @@ export const driverArrivedService = async (
             rideId
         );
 
-    if (ride.status !== "SCHEDULED") {
+   if (ride.status !== "ACCEPTED") {
+
+    throw new AppError(
+        "Driver can only arrive after accepting the ride.",
+        400
+    );
+
+}
+
+    if (ride.driverArrivedAt) {
 
         throw new AppError(
-            "Only scheduled rides can be marked as arrived.",
+            "Driver arrival has already been recorded.",
             400
         );
 
@@ -782,7 +791,6 @@ export const driverArrivedService = async (
 
 };
 
-
 export const updateRideLocationService = async (
     userId,
     rideId,
@@ -795,14 +803,15 @@ export const updateRideLocationService = async (
             rideId
         );
 
-    if (ride.status !== "ONGOING") {
-
-        throw new AppError(
-            "Ride is not ongoing.",
-            400
-        );
-
-    }
+    if (
+    ride.status !== "ACCEPTED" &&
+    ride.status !== "ONGOING"
+) {
+    throw new AppError(
+        "Location updates are only available after a ride is accepted.",
+        400
+    );
+}
 
     ride.currentLatitude =
         body.latitude;
@@ -833,7 +842,7 @@ export const getRideLocationService = async (
 
                 passengerId: userId,
 
-                bookingStatus: "CONFIRMED",
+                bookingStatus: "ACCEPTED",
 
             },
 
