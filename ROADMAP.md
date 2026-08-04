@@ -43,7 +43,7 @@
 
 ---
 
-# 🚧 Remaining MVP Features
+# Remaining MVP Features
 
 ## Route Matching Engine
 - [ ] Pickup proximity matching
