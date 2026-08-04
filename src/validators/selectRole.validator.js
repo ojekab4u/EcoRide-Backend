@@ -12,6 +12,7 @@ export const selectRoleValidator = [
          .isIn([
             "DRIVER",
             "PASSENGER",
+            "CORPORATE_ADMIN",
         ])
         .withMessage(
             "Role must be DRIVER or PASSENGER."

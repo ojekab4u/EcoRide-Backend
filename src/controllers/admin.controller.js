@@ -1,7 +1,7 @@
 
 import { successResponse }
 from "../utils/response.js";
-import {  
+import {
     reviewDriverProfileService,
     reviewPassengerProfileService,
     getUsersService,
@@ -9,7 +9,12 @@ import {
     getDriverDetailsService,
     getPassengerDetailsService,
     getDriversService,
-getPassengersService,
+    getPassengersService,
+
+    getCorporatesService,
+    getCorporateDetailsService,
+    reviewCorporateProfileService,
+
 } from "../services/admin.service.js";
 import User from "../models/user.model.js";
 import VehicleInspection from "../models/vehicleInspection.model.js";
@@ -214,3 +219,92 @@ export const reviewPassengerProfile = async (
     }
 
 };
+
+export const getCorporates = async (
+    req,
+    res,
+    next
+) => {
+
+    try {
+
+        const corporates =
+            await getCorporatesService();
+
+        return successResponse(
+            res,
+            200,
+            "Corporates retrieved successfully.",
+            corporates
+        );
+
+    } catch (error) {
+
+        next(error);
+
+    }
+
+};
+
+export const getCorporateDetails = async (
+    req,
+    res,
+    next
+) => {
+
+    try {
+
+        const corporate =
+            await getCorporateDetailsService(
+                req.params.corporateId
+            );
+
+        return successResponse(
+            res,
+            200,
+            "Corporate details retrieved successfully.",
+            corporate
+        );
+
+    } catch (error) {
+
+        next(error);
+
+    }
+
+};
+
+export const reviewCorporateProfile = async (
+    req,
+    res,
+    next
+) => {
+
+    try {
+
+        const corporate =
+            await reviewCorporateProfileService(
+
+                req.params.corporateId,
+
+                req.body.status,
+
+                req.body.reason
+
+            );
+
+        return successResponse(
+            res,
+            200,
+            "Corporate profile reviewed successfully.",
+            corporate
+        );
+
+    } catch (error) {
+
+        next(error);
+
+    }
+
+};
+

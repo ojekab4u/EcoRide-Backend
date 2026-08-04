@@ -27,7 +27,7 @@ export const calculateAvailableSeats = async (
             bookingStatus: {
                 [Op.in]: [
                     "PENDING",
-                    "CONFIRMED",
+                    "ACCEPTED",
                 ],
             },
         },

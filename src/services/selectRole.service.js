@@ -29,6 +29,7 @@ export const selectRoleService = async (
         ![
             ROLES.DRIVER,
             ROLES.PASSENGER,
+            ROLES.CORPORATE_ADMIN,
         ].includes(role)
     ) {
         throw new AppError(

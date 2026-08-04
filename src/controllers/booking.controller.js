@@ -3,7 +3,7 @@ import {
     getBookingsService,
     getBookingByIdService,
     cancelBookingService,
-    confirmBookingService,
+    acceptBookingService,
     getDriverBookingsService,
     rejectBookingsService,
     acknowledgeDriverArrivalService,
@@ -104,7 +104,7 @@ export const cancelBooking = async (
 
 };
 
-export const confirmBooking = async (
+export const acceptBooking = async (
     req,
     res,
     next
@@ -113,14 +113,14 @@ export const confirmBooking = async (
     try {
 
         const booking =
-            await confirmBookingService(
+            await acceptBookingService(
                 req.params.id
             );
 
         return successResponse(
             res,
             200,
-            "Booking confirmed successfully.",
+            "Booking accepted successfully.",
             booking
         );
 
