@@ -197,6 +197,15 @@ CorporateDocument.belongsTo(CorporateProfile, {
     foreignKey: "corporateProfileId",
 });
 
+User.hasMany(Notification, {
+    foreignKey: "userId",
+    onDelete: "CASCADE",
+});
+
+Notification.belongsTo(User, {
+    foreignKey: "userId",
+});
+
 
 export {
     User,

@@ -6,37 +6,43 @@ import Booking from "../models/booking.model.js";
 import DriverProfile from "../models/driver.model.js";
 import Vehicle from "../models/vehicle.model.js";
 import VehicleInspection from "../models/vehicleInspection.model.js";
+import PassengerProfile from "../models/passengerProfile.model.js";
 
+export const getDriverDashboardService = async (userId) => {
 
-export const getDriverDashboardService = async (
-    userId
-) => {
-
-    const driver =
-        await DriverProfile.findOne({
-            where: { userId },
-        });
+    const driver = await DriverProfile.findOne({
+        where: { userId },
+        include: [
+            {
+                model: User,
+                attributes: [
+                    "firstName",
+                    "lastName",
+                    "profilePicture",
+                    "isVerified",
+                ],
+            },
+        ],
+    });
 
     if (!driver) {
-        throw new Error("Driver profile not found.");
+        throw new AppError(
+            "Driver profile not found.",
+            404
+        );
     }
 
-    const vehicle =
-        await Vehicle.findOne({
-            where: {
-                driverId: driver.id,
-            },
-        });
+    const vehicle = await Vehicle.findOne({
+        where: {
+            driverId: driver.id,
+        },
+    });
 
     if (!vehicle) {
-        return {
-            totalRides: 0,
-            scheduledRides: 0,
-            ongoingRides: 0,
-            completedRides: 0,
-            pendingBookings: 0,
-            confirmedBookings: 0,
-        };
+        throw new AppError(
+            "Vehicle not found.",
+            404
+        );
     }
 
     const rides = await Ride.findAll({
@@ -45,60 +51,126 @@ export const getDriverDashboardService = async (
         },
     });
 
-    const rideIds = rides.map(r => r.id);
+    const rideIds = rides.map(
+        ride => ride.id
+    );
 
-    const totalRides = rides.length;
+    const activeRide = await Ride.findOne({
+        where: {
+            vehicleId: vehicle.id,
+            status: "ONGOING",
+        },
+    });
 
-    const scheduledRides = rides.filter(
-        r => r.status === "SCHEDULED"
-    ).length;
-
-    const ongoingRides = rides.filter(
-        r => r.status === "ONGOING"
-    ).length;
-
-    const completedRides = rides.filter(
-        r => r.status === "COMPLETED"
-    ).length;
-
-    const pendingBookings =
-        await Booking.count({
-            where: {
-                rideId: {
-                    [Op.in]: rideIds,
-                },
-                bookingStatus: "PENDING",
-            },
-        });
-
-    const confirmedBookings =
-        await Booking.count({
-            where: {
-                rideId: {
-                    [Op.in]: rideIds,
-                },
-                bookingStatus: "ACCEPTED",
-            },
-        });
+    const recentRides = await Ride.findAll({
+        where: {
+            vehicleId: vehicle.id,
+        },
+        limit: 5,
+        order: [["createdAt", "DESC"]],
+    });
 
     return {
-        totalRides,
-        scheduledRides,
-        ongoingRides,
-        completedRides,
-        pendingBookings,
-        confirmedBookings,
+
+        profile: {
+            fullName:
+                `${driver.User.firstName} ${driver.User.lastName}`,
+            profilePicture:
+                driver.User.profilePicture,
+            verified:
+                driver.User.isVerified,
+            vehiclePlate:
+                vehicle.plateNumber,
+            vehicleModel:
+                vehicle.vehicleModel,
+        },
+
+        stats: {
+
+            totalRides:
+                rides.length,
+
+            scheduledRides:
+                rides.filter(r =>
+                    r.status === "SCHEDULED"
+                ).length,
+
+            acceptedRides:
+                rides.filter(r =>
+                    r.status === "ACCEPTED"
+                ).length,
+
+            ongoingRides:
+                rides.filter(r =>
+                    r.status === "ONGOING"
+                ).length,
+
+            completedRides:
+                rides.filter(r =>
+                    r.status === "COMPLETED"
+                ).length,
+
+            cancelledRides:
+                rides.filter(r =>
+                    r.status === "CANCELLED"
+                ).length,
+
+            pendingBookings:
+                await Booking.count({
+                    where: {
+                        rideId: {
+                            [Op.in]: rideIds,
+                        },
+                        bookingStatus: "PENDING",
+                    },
+                }),
+
+            acceptedBookings:
+                await Booking.count({
+                    where: {
+                        rideId: {
+                            [Op.in]: rideIds,
+                        },
+                        bookingStatus: "ACCEPTED",
+                    },
+                }),
+
+        },
+
+        activeRide,
+
+        recentRides,
+
     };
+
 };
 
-export const getPassengerDashboardService = async (
-    userId
-) => {
+export const getPassengerDashboardService = async (userId) => {
+
+    const passenger = await PassengerProfile.findOne({
+        where: { userId },
+        include: [
+            {
+                model: User,
+                attributes: [
+                    "firstName",
+                    "lastName",
+                    "profilePicture",
+                    "isVerified",
+                ],
+            },
+        ],
+    });
+
+    if (!passenger) {
+        throw new AppError(
+            "Passenger profile not found.",
+            404
+        );
+    }
 
     const totalBookings = await Booking.count({
-        where: {
-            passengerId: userId,
-        },
+        where: { passengerId: userId },
     });
 
     const upcomingTrips = await Booking.count({
@@ -122,15 +194,61 @@ export const getPassengerDashboardService = async (
         },
     });
 
+    const currentTrip = await Booking.findOne({
+        where: {
+            passengerId: userId,
+            bookingStatus: "ACCEPTED",
+        },
+        include: [
+            {
+                model: Ride,
+            },
+        ],
+        order: [["createdAt", "DESC"]],
+    });
+
+    const recentBookings = await Booking.findAll({
+        where: {
+            passengerId: userId,
+        },
+        include: [
+            {
+                model: Ride,
+                attributes: [
+                    "pickupLocation",
+                    "destination",
+                    "departureTime",
+                    "status",
+                ],
+            },
+        ],
+        limit: 5,
+        order: [["createdAt", "DESC"]],
+    });
+
     return {
-        totalBookings,
-        upcomingTrips,
-        completedTrips,
-        cancelledTrips,
+
+        profile: {
+            fullName:
+                `${passenger.User.firstName} ${passenger.User.lastName}`,
+            profilePicture:
+                passenger.User.profilePicture,
+            verified:
+                passenger.User.isVerified,
+        },
+
+        stats: {
+            totalBookings,
+            upcomingTrips,
+            completedTrips,
+            cancelledTrips,
+        },
+
+        currentTrip,
+
+        recentBookings,
     };
-
 };
-
 
 export const getAdminDashboardService = async () => {
 

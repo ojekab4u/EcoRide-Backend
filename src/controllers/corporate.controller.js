@@ -2,6 +2,7 @@ import {
     createCorporateProfileService,
     getCorporateProfileService,
     updateCorporateProfileService,
+    getCorporateDashboardService
 } from "../services/corporate.service.js";
 
 import { successResponse }

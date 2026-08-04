@@ -11,6 +11,7 @@ import { generateBookingReference } from "../utils/generateBookingReference.js";
 import {
     calculateAvailableSeats,
 } from "../helpers/calculateAvailableSeats.js";
+import { createNotification } from "./notification.service.js";
 
 
 
@@ -161,6 +162,35 @@ if ( numberOfSeats > availableSeats)
         recurrenceEndDate:
             recurrenceEndDate ?? null,
     });
+    
+    const driver = await DriverProfile.findByPk(
+        vehicle.driverId
+    );
+
+    if (!driver) {
+        throw new AppError(
+            "Driver not found.",
+            404
+        );
+    }
+
+    // Driver
+    await createNotification({
+    userId: driver.userId,
+    title: "New Booking Request",
+    message: "A passenger requested to join your ride.",
+    type: "BOOKING",
+    referenceId: booking.id,
+});
+
+    // Passenger
+    await createNotification({
+    userId: booking.passengerId,
+    title: "Booking Submitted",
+    message: "Your booking request has been submitted successfully.",
+    type: "BOOKING",
+    referenceId: booking.id,
+});
 
     // Reduce seats (only for one-time bookings)
     if (!isRecurring) {
@@ -269,9 +299,14 @@ export const getBookingByIdService = async (id) => {
 
 export const cancelBookingService = async (
     id,
-    reason
+    reason,
 ) => {
     const booking = await Booking.findByPk(id);
+    const ride = await Ride.findByPk(booking.rideId);
+
+    const vehicle = await Vehicle.findByPk(ride.vehicleId);
+
+    const driver = await DriverProfile.findByPk(vehicle.driverId);
 
     if (!booking) {
         throw new AppError(
@@ -289,16 +324,23 @@ export const cancelBookingService = async (
         );
 
     }
+  
 
-    const ride = await Ride.findByPk(
-        booking.rideId
-    );
+    
 
     booking.bookingStatus = "CANCELLED";
     booking.cancelledAt = new Date();
     booking.cancelReason = reason;
 
     await booking.save();
+
+    await createNotification({
+    userId: driver.userId,
+    title: "Booking Cancelled",
+    message: "A passenger cancelled their booking.",
+    type: "BOOKING",
+    referenceId: booking.id,
+});
 
     ride.remainingSeats +=
         booking.numberOfSeats;
@@ -335,11 +377,16 @@ export const acceptBookingService = async (
 
     }
 
-    booking.bookingStatus =
-        "ACCEPTED";
-
+    booking.bookingStatus = "ACCEPTED";
     await booking.save();
 
+    await createNotification({
+    userId: booking.passengerId,
+    title: "Booking Accepted",
+    message: "Your booking has been accepted by the driver.",
+    type: "BOOKING",
+    referenceId: booking.id,
+});
     // Update ride status
     const ride =
         await Ride.findByPk(
@@ -574,6 +621,14 @@ export const rejectBookingsService = async (
 
     await booking.save();
 
+    await createNotification({
+    userId: booking.passengerId,
+    title: "Booking Rejected",
+    message: "Your booking request was rejected.",
+    type: "BOOKING",
+    referenceId: booking.id,
+});
+
     // Restore seats
     ride.remainingSeats += booking.numberOfSeats;
 
@@ -621,10 +676,17 @@ export const acknowledgeDriverArrivalService = async (
     }
 
     booking.passengerAcknowledged = true;
-
     booking.acknowledgedAt = new Date();
 
     await booking.save();
+
+    await createNotification({
+    userId: driver.userId,
+    title: "Passenger Ready",
+    message: "The passenger has acknowledged your arrival.",
+    type: "RIDE",
+    referenceId: booking.id,
+});
 
     return booking;
 

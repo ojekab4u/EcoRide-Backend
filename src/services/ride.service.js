@@ -8,6 +8,7 @@ import VehicleInspection from "../models/vehicleInspection.model.js";
 import AppError from "../utils/AppError.js";
 import { paginate, getPagingData } from "../utils/pagination.js";
 import {calculateAvailableSeats} from "../helpers/calculateAvailableSeats.js"
+import { createNotification } from "./notification.service.js";
 
 const getDriverVehicle = async (userId) => {
 
@@ -310,9 +311,7 @@ export const deleteRideService = async (
 
 
 export const cancelRideService = async (
-    userId,
-    rideId
-) => {
+    userId, rideId) => {
 
     // Find driver
     const driver = await DriverProfile.findOne({
@@ -658,8 +657,14 @@ const notAcknowledged =
     }
 
     ride.status = "ONGOING";
-
     await ride.save();
+    await createNotification({
+    userId: booking.passengerId,
+    title: "Ride Started",
+    message: "Your trip has started.",
+    type: "RIDE",
+    referenceId: ride.id,
+});
 
     return ride;
 
@@ -736,6 +741,22 @@ export const completeRideService = async (
     // Complete ride
     ride.status = "COMPLETED";
     await ride.save();
+    // Passenger
+    await createNotification({
+    userId: booking.passengerId,
+    title: "Trip Completed",
+    message: "Thank you for riding with EcoRide.",
+    type: "RIDE",
+    referenceId: ride.id,
+});
+    // Driver
+    await createNotification({
+    userId: driver.userId,
+    title: "Trip Completed",
+    message: "Trip completed successfully.",
+    type: "RIDE",
+    referenceId: ride.id,
+});
 
     // Complete all confirmed bookings
     await Booking.update(
@@ -786,6 +807,13 @@ export const driverArrivedService = async (
     ride.driverArrivedAt = new Date();
 
     await ride.save();
+    await createNotification({
+    userId: booking.passengerId,
+    title: "Driver Arrived",
+    message: "Your driver has arrived at the pickup point.",
+    type: "RIDE",
+    referenceId: ride.id,
+});
 
     return ride;
 
