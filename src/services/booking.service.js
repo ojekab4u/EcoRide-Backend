@@ -8,7 +8,9 @@ import PassengerProfile from "../models/passengerProfile.model.js";
 import Vehicle from "../models/vehicle.model.js";
 import AppError from "../utils/AppError.js";
 import { generateBookingReference } from "../utils/generateBookingReference.js";
-
+import {
+    calculateAvailableSeats,
+} from "../helpers/calculateAvailableSeats.js";
 
 
 
@@ -20,6 +22,11 @@ export const createBookingService = async (
     const {
         rideId,
         numberOfSeats,
+        travelDate,
+        isRecurring,
+        recurrenceDays,
+        recurrenceStartDate,
+        recurrenceEndDate,
     } = bookingData;
 
     // Find passenger profile
@@ -52,6 +59,30 @@ export const createBookingService = async (
         );
     }
 
+    // Driver must allow recurring bookings
+    if (isRecurring && !ride.allowRecurringBooking) {
+        throw new AppError(
+            "This ride does not accept recurring bookings.",
+            400
+        );
+    }
+
+    // Validate recurring booking fields
+    if (isRecurring) {
+
+        if (
+            !recurrenceDays ||
+            !recurrenceStartDate ||
+            !recurrenceEndDate
+        ) {
+            throw new AppError(
+                "Recurring bookings require recurrence days, start date and end date.",
+                400
+            );
+        }
+
+    }
+
     // Get vehicle
     const vehicle = await Vehicle.findByPk(
         ride.vehicleId
@@ -69,14 +100,19 @@ export const createBookingService = async (
     }
 
     // Seat availability
-    if (
-        numberOfSeats >
-        ride.remainingSeats
-    ) {
-        throw new AppError(
-            "Not enough seats available.",
-            400
-        );
+   const availableSeats =
+    await calculateAvailableSeats(
+        ride,
+        isRecurring
+            ? recurrenceStartDate
+            : travelDate
+    );
+if ( numberOfSeats > availableSeats) 
+    {
+    throw new AppError(
+        "Not enough seats available.",
+        400
+    );
     }
 
     // Prevent duplicate active booking
@@ -116,11 +152,24 @@ export const createBookingService = async (
         bookingReference: generateBookingReference(),
         numberOfSeats,
         fare,
-    });
-    // Reduce seats
-    ride.remainingSeats -= numberOfSeats;
+        travelDate,
 
-    await ride.save();
+        isRecurring: isRecurring ?? false,
+        recurrenceDays: recurrenceDays ?? null,
+        recurrenceStartDate:
+            recurrenceStartDate ?? null,
+        recurrenceEndDate:
+            recurrenceEndDate ?? null,
+    });
+
+    // Reduce seats (only for one-time bookings)
+    if (!isRecurring) {
+
+        ride.remainingSeats -= numberOfSeats;
+
+        await ride.save();
+
+    }
 
     return booking;
 
@@ -143,12 +192,67 @@ export const getBookingsService = async (user) => {
     return bookings;
 };
 
-export const getBookingByIdService = async (
-    id
-) => {
+export const getBookingByIdService = async (id) => {
 
     const booking = await Booking.findByPk(id, {
-        include: [Ride],
+
+        include: [
+
+            {
+                model: Ride,
+
+                include: [
+
+                    {
+                        model: Vehicle,
+
+                        include: [
+
+                            {
+                                model: DriverProfile,
+
+                                include: [
+
+                                    {
+                                        model: User,
+                                        attributes: [
+                                            "id",
+                                            "firstName",
+                                            "lastName",
+                                            "phoneNumber",
+                                            "email",
+                                            "profilePicture"
+                                        ]
+                                    }
+
+                                ]
+                            }
+
+                        ]
+                    }
+
+                ]
+            },
+
+            {
+                model: User,
+                attributes: [
+                    "id",
+                    "firstName",
+                    "lastName",
+                    "phoneNumber",
+                    "email",
+                    "profilePicture"
+                ],
+                include: [
+                    {
+                        model: PassengerProfile
+                    }
+                ]
+            }
+
+        ]
+
     });
 
     if (!booking) {
@@ -159,8 +263,8 @@ export const getBookingByIdService = async (
         );
 
     }
-    return booking;
 
+    return booking;
 };
 
 export const cancelBookingService = async (
@@ -260,11 +364,9 @@ export const getDriverBookingsService = async (
     userId
 ) => {
 
-    // Find driver's profile
-    const driver =
-        await DriverProfile.findOne({
-            where: { userId },
-        });
+    const driver = await DriverProfile.findOne({
+        where: { userId },
+    });
 
     if (!driver) {
         throw new AppError(
@@ -273,77 +375,97 @@ export const getDriverBookingsService = async (
         );
     }
 
-    // Find driver's vehicles
-    const vehicles =
-        await Vehicle.findAll({
-            where: {
-                driverId: driver.id,
-            },
-        });
+    const vehicles = await Vehicle.findAll({
+        where: {
+            driverId: driver.id,
+        },
+    });
 
-    const vehicleIds =
-        vehicles.map(v => v.id);
+    const vehicleIds = vehicles.map(
+        vehicle => vehicle.id
+    );
 
     if (!vehicleIds.length) {
         return [];
     }
 
-    // Find rides created with those vehicles
-    const rides =
-        await Ride.findAll({
-            where: {
-                vehicleId: {
-                    [Op.in]: vehicleIds,
-                },
-            },
-        });
+    const bookings = await Booking.findAll({
 
-    const rideIds =
-        rides.map(r => r.id);
+        include: [
 
-    if (!rideIds.length) {
-        return [];
-    }
-
-    // Return bookings
-    const bookings =
-        await Booking.findAll({
-
-            where: {
-                rideId: {
-                    [Op.in]: rideIds,
-                },
+            {
+                model: User,
+                attributes: [
+                    "id",
+                    "firstName",
+                    "lastName",
+                    "email",
+                    "phoneNumber",
+                    "profilePicture",
+                ],
+                include: [
+                    {
+                        model: PassengerProfile,
+                    },
+                ],
             },
 
-            include: [
+            {
+                model: Ride,
 
-                {
-                    model: Ride,
-                },
+                include: [
 
-                {
-                    model: User,
-                    attributes: [
-                        "id",
-                        "firstName",
-                        "lastName",
-                        "phoneNumber",
-                        "email",
-                    ],
-                },
+                    {
+                        model: Vehicle,
 
-            ],
+                        where: {
+                            id: {
+                                [Op.in]: vehicleIds,
+                            },
+                        },
 
-            order: [
-                ["createdAt", "DESC"],
-            ],
+                        include: [
 
-        });
+                            {
+                                model: DriverProfile,
+
+                                include: [
+
+                                    {
+                                        model: User,
+                                        attributes: [
+                                            "id",
+                                            "firstName",
+                                            "lastName",
+                                            "email",
+                                            "phoneNumber",
+                                            "profilePicture",
+                                        ],
+                                    },
+
+                                ],
+
+                            },
+
+                        ],
+
+                    },
+
+                ],
+
+            },
+
+        ],
+
+        order: [
+            ["createdAt", "DESC"],
+        ],
+
+    });
 
     return bookings;
 
 };
-
 
 export const rejectBookingsService = async (
     userId,
@@ -425,6 +547,53 @@ export const rejectBookingsService = async (
     ride.remainingSeats += booking.numberOfSeats;
 
     await ride.save();
+
+    return booking;
+
+};
+
+export const acknowledgeDriverArrivalService = async (
+    bookingId,
+    passengerId
+) => {
+
+    const booking =
+        await Booking.findOne({
+
+            where: {
+                id: bookingId,
+                passengerId,
+            },
+
+            include: [
+                Ride,
+            ],
+
+        });
+
+    if (!booking) {
+
+        throw new AppError(
+            "Booking not found.",
+            404
+        );
+
+    }
+
+    if (!booking.Ride.driverArrivedAt) {
+
+        throw new AppError(
+            "Driver has not arrived yet.",
+            400
+        );
+
+    }
+
+    booking.passengerAcknowledged = true;
+
+    booking.acknowledgedAt = new Date();
+
+    await booking.save();
 
     return booking;
 

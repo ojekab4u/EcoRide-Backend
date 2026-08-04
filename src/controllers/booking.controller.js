@@ -6,6 +6,7 @@ import {
     confirmBookingService,
     getDriverBookingsService,
     rejectBookingsService,
+    acknowledgeDriverArrivalService,
     
 } from "../services/booking.service.js";
 
@@ -178,6 +179,35 @@ export const rejectBooking = async (
             res,
             200,
             "Booking rejected successfully.",
+            booking
+        );
+
+    } catch (error) {
+
+        next(error);
+
+    }
+
+};
+
+export const acknowledgeDriverArrival = async (
+    req,
+    res,
+    next
+) => {
+
+    try {
+
+        const booking =
+            await acknowledgeDriverArrivalService(
+                req.params.id,
+                req.user.id
+            );
+
+        return successResponse(
+            res,
+            200,
+            "Driver arrival acknowledged.",
             booking
         );
 

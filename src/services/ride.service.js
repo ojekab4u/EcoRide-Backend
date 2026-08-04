@@ -4,10 +4,10 @@ import Booking from "../models/booking.model.js";
 import Ride from "../models/ride.model.js";
 import Vehicle from "../models/vehicle.model.js";
 import DriverProfile from "../models/driver.model.js";
-
+import VehicleInspection from "../models/vehicleInspection.model.js";
 import AppError from "../utils/AppError.js";
 import { paginate, getPagingData } from "../utils/pagination.js";
-
+import {calculateAvailableSeats} from "../helpers/calculateAvailableSeats.js"
 
 const getDriverVehicle = async (userId) => {
 
@@ -47,22 +47,66 @@ export const createRideService = async (
     rideData
 ) => {
 
-    const vehicle =
-        await getDriverVehicle(userId);
+    const {
+        vehicleId,
+    } = rideData;
 
-    const ride = await Ride.create({
-    ...rideData,
-    remainingSeats: rideData.availableSeats,
-    vehicleId: vehicle.id,
-});
-        return ride;
+    const driver =
+        await DriverProfile.findOne({
+            where: { userId },
+        });
+
+    if (!driver) {
+        throw new AppError(
+            "Driver profile not found.",
+            404
+        );
+    }
+
+    const vehicle =
+        await Vehicle.findOne({
+            where: {
+                id: vehicleId,
+                driverId: driver.id,
+                verificationStatus: "APPROVED",
+            },
+            include: [
+                VehicleInspection,
+            ],
+        });
+
+    if (!vehicle) {
+        throw new AppError(
+            "Vehicle not found or not approved.",
+            404
+        );
+    }
+
+    const inspection =
+        vehicle.VehicleInspection;
+
+    if (
+        !inspection ||
+        inspection.inspectionStatus !== "PASSED"
+    ) {
+        throw new AppError(
+            "Vehicle inspection has not passed.",
+            400
+        );
+    }
+
+    return await Ride.create({
+        ...rideData,
+        remainingSeats:
+            rideData.availableSeats,
+        vehicleId,
+        allowRecurringBooking:
+            rideData.allowRecurringBooking ?? false,
+    });
 
 };
 
-
-export const getAllRidesService = async (
-    query
-) => {
+export const getAllRidesService = async (query) => {
 
     const {
         page,
@@ -111,14 +155,40 @@ export const getAllRidesService = async (
             order: [
                 ["departureTime", "ASC"],
             ],
+
         });
+
+    const rides = [];
+
+    for (const ride of rows) {
+
+        const travelDate =
+            ride.departureTime
+                .toISOString()
+                .split("T")[0];
+
+        const availableSeats =
+            await calculateAvailableSeats(
+                ride,
+                travelDate
+            );
+
+        ride.setDataValue(
+            "remainingSeats",
+            availableSeats
+        );
+
+        rides.push(ride);
+
+    }
 
     return getPagingData(
         count,
-        rows,
+        rides,
         pagination.currentPage,
         pagination.limit
     );
+
 };
 
 export const getRideByIdService = async (
@@ -126,18 +196,37 @@ export const getRideByIdService = async (
     rideId
 ) => {
 
-    const vehicle =
-        await getDriverVehicle(userId);
-
-    const ride = await Ride.findOne({
-
-        where: {
-            id: rideId,
-            vehicleId: vehicle.id,
-        },
+    const ride = await Ride.findByPk(rideId, {
 
         include: [
-            Vehicle,
+
+            {
+                model: Vehicle,
+
+                include: [
+
+                    {
+                        model: DriverProfile,
+
+                        include: [
+                            {
+                                model: User,
+                                attributes: [
+                                    "id",
+                                    "firstName",
+                                    "lastName",
+                                    "email",
+                                    "phoneNumber",
+                                    "profilePicture",
+                                ],
+                            },
+                        ],
+                    },
+
+                ],
+
+            },
+
         ],
 
     });
@@ -150,6 +239,19 @@ export const getRideByIdService = async (
         );
 
     }
+
+    const travelDate =
+        new Date()
+            .toISOString()
+            .split("T")[0];
+
+    ride.setDataValue(
+        "remainingSeats",
+        await calculateAvailableSeats(
+            ride,
+            travelDate
+        )
+    );
 
     return ride;
 
@@ -205,9 +307,6 @@ export const deleteRideService = async (
     await ride.destroy();
 
 };
-
-
-
 
 
 export const cancelRideService = async (
@@ -347,12 +446,7 @@ export const searchRidesService = async (
 
     const where = {
 
-        status: "SCHEDULED",
-
-        remainingSeats: {
-            [Op.gte]: Number(seats),
-        },
-
+        status: "SCHEDULED",       
     };
 
     if (destination) {
@@ -381,10 +475,7 @@ export const searchRidesService = async (
 
     }
 
-    const {
-        count,
-        rows,
-    } = await Ride.findAndCountAll({
+    const {count,rows,} = await Ride.findAndCountAll({
 
         where,
 
@@ -396,7 +487,21 @@ export const searchRidesService = async (
                 include: [
                     {
                         model: DriverProfile,
-                        include: [User]
+                       include: [
+
+    {
+
+        model: User,
+        attributes: [
+            "id",
+            "firstName",
+            "lastName",
+            "profilePicture",
+            "phoneNumber",
+            "isVerified",
+        ],
+    },
+]
                     }
 
                 ]
@@ -416,15 +521,37 @@ export const searchRidesService = async (
             pagination.offset,
 
     });
+    const travelDate =
+    departureDate ||
+    new Date().toISOString().split("T")[0];
+
+const rides = [];
+
+for (const ride of rows) {
+
+    const available =
+        await calculateAvailableSeats(
+            ride,
+            travelDate
+        );
+
+    if (available >= Number(seats)) {
+
+        ride.setDataValue(
+            "remainingSeats",
+            available
+        );
+
+        rides.push(ride);
+
+    }
+
+}
 
     return getPagingData(
-
-        count,
-
-        rows,
-
+        rides.length,
+        rides,
         pagination.currentPage,
-
         pagination.limit
 
     );
@@ -493,6 +620,41 @@ export const startRideService = async (
             "Cancelled ride cannot be started.",
             400
         );
+    }
+    const confirmedBookings =
+    await Booking.findAll({
+
+        where: {
+
+            rideId,
+
+            bookingStatus: "CONFIRMED",
+
+        },
+
+    });
+
+if (!confirmedBookings.length) {
+
+    throw new AppError(
+        "No confirmed passengers.",
+        400
+    );
+
+}
+
+const notAcknowledged =
+    confirmedBookings.find(
+        booking => !booking.passengerAcknowledged
+    );
+
+    if (notAcknowledged) {
+
+        throw new AppError(
+            "All passengers must acknowledge arrival before starting the ride.",
+            400
+        );
+
     }
 
     ride.status = "ONGOING";
@@ -589,5 +751,121 @@ export const completeRideService = async (
     );
 
     return ride;
+
+};
+
+export const driverArrivedService = async (
+    userId,
+    rideId
+) => {
+
+    const ride =
+        await getRideByIdService(
+            userId,
+            rideId
+        );
+
+    if (ride.status !== "SCHEDULED") {
+
+        throw new AppError(
+            "Only scheduled rides can be marked as arrived.",
+            400
+        );
+
+    }
+
+    ride.driverArrivedAt = new Date();
+
+    await ride.save();
+
+    return ride;
+
+};
+
+
+export const updateRideLocationService = async (
+    userId,
+    rideId,
+    body
+) => {
+
+    const ride =
+        await getRideByIdService(
+            userId,
+            rideId
+        );
+
+    if (ride.status !== "ONGOING") {
+
+        throw new AppError(
+            "Ride is not ongoing.",
+            400
+        );
+
+    }
+
+    ride.currentLatitude =
+        body.latitude;
+
+    ride.currentLongitude =
+        body.longitude;
+
+    ride.lastLocationUpdate =
+        new Date();
+
+    await ride.save();
+
+    return ride;
+
+};
+
+export const getRideLocationService = async (
+    userId,
+    rideId
+) => {
+
+    const booking =
+        await Booking.findOne({
+
+            where: {
+
+                rideId,
+
+                passengerId: userId,
+
+                bookingStatus: "CONFIRMED",
+
+            },
+
+            include: [Ride],
+
+        });
+
+    if (!booking) {
+
+        throw new AppError(
+            "Ride not found.",
+            404
+        );
+
+    }
+
+    return {
+
+        rideId,
+
+        latitude:
+            booking.Ride.currentLatitude,
+
+        longitude:
+            booking.Ride.currentLongitude,
+
+        lastUpdated:
+            booking.Ride.lastLocationUpdate,
+
+        status:
+            booking.Ride.status,
+
+    };
 
 };

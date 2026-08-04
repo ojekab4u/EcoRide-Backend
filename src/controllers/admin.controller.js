@@ -7,7 +7,10 @@ import {
     getUsersService,
     updateUserRoleService,
     getDriverDetailsService,
-    getPassengerDetailsService,} from "../services/admin.service.js";
+    getPassengerDetailsService,
+    getDriversService,
+getPassengersService,
+} from "../services/admin.service.js";
 import User from "../models/user.model.js";
 import VehicleInspection from "../models/vehicleInspection.model.js";
 
@@ -42,7 +45,7 @@ export const updateUserRole = async (
 };
 
 export const reviewDriverProfile =
-async (req,res,next)=>{
+    async (req,res,next)=>{
 
 try{
 

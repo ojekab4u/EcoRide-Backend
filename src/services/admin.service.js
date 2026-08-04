@@ -254,6 +254,75 @@ export const getPassengerDetailsService = async (passengerId) => {
     };
 };
 
+export const getDriversService = async () => {
+
+    return await DriverProfile.findAll({
+
+        include: [
+
+            {
+                model: User,
+                attributes: {
+                    exclude: [
+                        "password",
+                        "passwordResetToken",
+                        "passwordResetExpires",
+                    ],
+                },
+            },
+
+            {
+                model: Vehicle,
+                include: [
+                    VehicleInspection,
+                ],
+            },
+
+            DriverDocument,
+
+        ],
+
+        order: [
+            ["createdAt", "DESC"],
+        ],
+
+    });
+
+};
+
+
+
+export const getPassengersService = async () => {
+
+    return await PassengerProfile.findAll({
+
+        include: [
+
+            {
+                model: User,
+                attributes: {
+                    exclude: [
+                        "password",
+                        "passwordResetToken",
+                        "passwordResetExpires",
+                    ],
+                },
+            },
+
+            PassengerDocument,
+
+            EmergencyContact,
+
+        ],
+
+        order: [
+            ["createdAt", "DESC"],
+        ],
+
+    });
+
+};
+
 export const reviewPassengerProfileService = async (
     passengerId,
     status,

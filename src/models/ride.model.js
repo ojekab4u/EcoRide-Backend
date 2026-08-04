@@ -68,18 +68,29 @@ const Ride = sequelize.define(
       ),
       defaultValue: "SCHEDULED",
     },
-    isRecurring: {
+    currentLatitude: {
+      type: DataTypes.DECIMAL(10, 8),
+      allowNull: true,
+  },
+
+      currentLongitude: {
+          type: DataTypes.DECIMAL(11, 8),
+          allowNull: true,
+      },
+
+      lastLocationUpdate: {
+          type: DataTypes.DATE,
+          allowNull: true,
+      },
+          driverArrivedAt: {
+    type: DataTypes.DATE,
+    allowNull: true,
+},
+    allowRecurringBooking: {
     type: DataTypes.BOOLEAN,
     defaultValue: false,
 },
-    recurrenceType: {
-      type: DataTypes.ENUM(
-          "DAILY",
-          "WEEKLY",
-          "MONTHLY"
-      ),
-      allowNull: true,
-},
+    
   },
   {
     timestamps: true,
