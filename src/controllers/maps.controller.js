@@ -1,23 +1,31 @@
-import { autocompleteService } from "../services/maps.service.js";
-import { successResponse } from "../utils/response.js";
+import axios from "axios";
 
 export const autocomplete = async (req, res, next) => {
-
     try {
 
-        const data = await autocompleteService(req.query.input);
+        const { input } = req.query;
 
-        return successResponse(
-            res,
-            200,
-            "Locations retrieved successfully.",
-            data
+        const response = await axios.post(
+            "https://places.googleapis.com/v1/places:autocomplete",
+            {
+                input
+            },
+            {
+                headers: {
+                    "X-Goog-Api-Key": process.env.GOOGLE_MAPS_API_KEY,
+                    "X-Goog-FieldMask": "*",
+                    "Content-Type": "application/json"
+                }
+            }
         );
 
+        return res.json(response.data);
+
     } catch (error) {
+
+        console.log(error.response?.data);
 
         next(error);
 
     }
-
 };

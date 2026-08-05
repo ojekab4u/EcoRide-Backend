@@ -9,7 +9,7 @@ import Booking from "../models/booking.model.js";
 import Ride from "../models/ride.model.js";
 import { Op } from "sequelize";
 import AppError from "../utils/AppError.js";
-
+import Rating from "../models/rating.model.js";
 
 
 export const createPassengerProfileService = async (
@@ -127,7 +127,27 @@ export const getPassengerProfileService = async (
     // Placeholder for referral/discount 
     const amountSaved = 0;
     
-    const rating = 0;
+   const ratings = await Rating.findAll({
+    where: {
+        revieweeId: userId,
+    },
+});
+
+const averageRating =
+    ratings.length > 0
+        ? Number(
+              (
+                  ratings.reduce(
+                      (sum, rating) =>
+                          sum +
+                          Number(
+                              rating.passengerRating || 0
+                          ),
+                      0
+                  ) / ratings.length
+              ).toFixed(1)
+          )
+        : 0;
 
     const walletBalance = Number(
         wallet?.balance || 0
@@ -181,11 +201,12 @@ export const getPassengerProfileService = async (
     },
 
     stats: {
-        totalTrips,
-        amountSpent: Number(amountSpent),
-        amountSaved,
-        rating,
-    },
+    totalTrips,
+    amountSpent: Number(amountSpent),
+    amountSaved,
+    averageRating,
+    totalRatings: ratings.length,
+},
 
     profileCompletion,
 

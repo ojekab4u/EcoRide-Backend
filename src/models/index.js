@@ -127,6 +127,7 @@ Payment.belongsTo(Booking, {
     foreignKey: "bookingId",
 });
 
+// Rating
 
 Booking.hasOne(Rating, {
     foreignKey: "bookingId",
@@ -134,6 +135,26 @@ Booking.hasOne(Rating, {
 
 Rating.belongsTo(Booking, {
     foreignKey: "bookingId",
+});
+
+User.hasMany(Rating, {
+    foreignKey: "reviewerId",
+    as: "GivenRatings",
+});
+
+Rating.belongsTo(User, {
+    foreignKey: "reviewerId",
+    as: "Reviewer",
+});
+
+User.hasMany(Rating, {
+    foreignKey: "revieweeId",
+    as: "ReceivedRatings",
+});
+
+Rating.belongsTo(User, {
+    foreignKey: "revieweeId",
+    as: "Reviewee",
 });
 
 // OTP
@@ -236,6 +257,9 @@ Wallet.hasMany(WalletTransaction, {
 WalletTransaction.belongsTo(Wallet, {
     foreignKey: "walletId",
 });
+
+
+
 export {
     User,
     DriverProfile,
