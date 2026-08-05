@@ -6,6 +6,7 @@ import VehicleInspection from "./vehicleInspection.model.js";
 import Ride from "./ride.model.js";
 import Booking from "./booking.model.js";
 import Payment from "./payment.model.js";
+import WalletTransaction from "./WalletTransaction.model.js";
 import Wallet from "./wallet.model.js";
 import Rating from "./rating.model.js";
 import Notification from "./notification.model.js";
@@ -226,6 +227,15 @@ Payment.belongsTo(User, {
     foreignKey: "userId",
 });
 
+
+// Wallet Transaction
+Wallet.hasMany(WalletTransaction, {
+    foreignKey: "walletId",
+});
+
+WalletTransaction.belongsTo(Wallet, {
+    foreignKey: "walletId",
+});
 export {
     User,
     DriverProfile,
@@ -244,5 +254,6 @@ export {
     EmergencyContact,
     PassengerDocument,
     CorporateProfile,
-    CorporateDocument
+    CorporateDocument,
+    WalletTransaction
 };

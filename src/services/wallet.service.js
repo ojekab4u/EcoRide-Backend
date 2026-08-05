@@ -47,84 +47,68 @@ export const getWalletTransactionsService = async (
 };
 
 
-export const debitWallet = async (
-    userId,
-    amount
-) => {
-
-    const wallet =
-        await Wallet.findOne({
-
-            where: {
-                userId,
-            },
-
-        });
-
-    if (!wallet) {
-
-        throw new AppError(
-            "Wallet not found.",
-            404
-        );
-
-    }
-
-    if (
-        Number(wallet.balance) <
-        Number(amount)
-    ) {
-
-        throw new AppError(
-            "Insufficient wallet balance.",
-            400
-        );
-
-    }
-
-    wallet.balance =
-        Number(wallet.balance) -
-        Number(amount);
-
-    await wallet.save();
-
-    return wallet;
-
-};
-
 export const creditWallet = async (
-    userId,
-    amount
+   userId,
+    amount,
+    options = {}
 ) => {
 
-    let wallet =
-        await Wallet.findOne({
+   const { transaction } = options;
 
-            where: {
-                userId,
-            },
-
-        });
+    const wallet = await Wallet.findOne({
+        where: { userId },
+        transaction,
+    });
 
     if (!wallet) {
-
-        wallet =
-            await Wallet.create({
-
-                userId,
-
-                balance: 0,
-
-            });
-
+        wallet = await Wallet.create({
+            userId,
+            balance: 0,
+        });
     }
 
     wallet.balance =
         Number(wallet.balance) +
         Number(amount);
 
-    await wallet.save();
+    await wallet.save({ transaction });
+
+   
+    return wallet;
+};
+
+export const debitWallet = async (
+     userId,
+    amount,
+    options = {}
+) => {
+
+     const { transaction } = options;
+
+    let wallet = await Wallet.findOne({
+        where: { userId },
+        transaction,
+    });
+
+    if (!wallet) {
+        throw new AppError(
+            "Wallet not found.",
+            404
+        );
+    }
+
+    if (Number(wallet.balance) < Number(amount)) {
+        throw new AppError(
+            "Insufficient wallet balance.",
+            400
+        );
+    }
+
+    wallet.balance =
+        Number(wallet.balance) -
+        Number(amount);
+    
+    await wallet.save({ transaction });
 
     return wallet;
-
-};
+}
