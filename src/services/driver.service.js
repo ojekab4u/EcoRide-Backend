@@ -77,11 +77,24 @@ export const createDriverProfileService = async (
         throw error;
     }
 };
-
 export const getDriverProfileService = async (userId) => {
 
     const driverProfile = await DriverProfile.findOne({
         where: { userId },
+        include: [
+            {
+                model: User,
+                attributes: [
+                    "id",
+                    "firstName",
+                    "lastName",
+                    "email",
+                    "phoneNumber",
+                    "profilePicture",
+                    "isVerified",
+                ],
+            },
+        ],
     });
 
     if (!driverProfile) {
@@ -91,7 +104,62 @@ export const getDriverProfileService = async (userId) => {
         );
     }
 
-    return driverProfile;
+    return {
+
+        profile: {
+
+            id: driverProfile.User.id,
+
+            firstName:
+                driverProfile.User.firstName,
+
+            lastName:
+                driverProfile.User.lastName,
+
+            fullName:
+                `${driverProfile.User.firstName} ${driverProfile.User.lastName}`,
+
+            email:
+                driverProfile.User.email,
+
+            phoneNumber:
+                driverProfile.User.phoneNumber,
+
+            profilePicture:
+                driverProfile.User.profilePicture,
+
+            verified:
+                driverProfile.User.isVerified,
+
+        },
+
+        driver: {
+
+            licenseNumber:
+                driverProfile.licenseNumber,
+
+            licenseExpiry:
+                driverProfile.licenseExpiry,
+
+            yearsOfExperience:
+                driverProfile.yearsOfExperience,
+
+            preferredVehicleType:
+                driverProfile.preferredVehicleType,
+
+            verificationStatus:
+                driverProfile.verificationStatus,
+
+            rejectionReason:
+                driverProfile.rejectionReason,
+
+            profileCompleted:
+                driverProfile.profileCompleted,
+
+        },
+
+    };
+
 };
 
 export const updateDriverProfileService = async (
