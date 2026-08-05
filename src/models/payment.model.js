@@ -9,6 +9,10 @@ const Payment = sequelize.define(
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
+    userId: {
+      type: DataTypes.UUID,
+      allowNull: false,
+  },
 
     amount: {
       type: DataTypes.DECIMAL(10, 2),
@@ -33,8 +37,16 @@ const Payment = sequelize.define(
       ),
       defaultValue: "PENDING",
     },
+    paymentType: {
+      type: DataTypes.ENUM(
+          "BOOKING",
+          "WALLET_TOPUP",
+          "REFUND"
+      ),
+      allowNull: false,
+  },
 
-    transactionReference: {
+    reference: {
       type: DataTypes.STRING,
       unique: true,
     },

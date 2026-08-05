@@ -1,23 +1,130 @@
-import Wallet from '../models/wallet.model.js';
+import Wallet from "../models/wallet.model.js";
+import Payment from "../models/payment.model.js";
+import AppError from "../utils/AppError.js";
 
-export const getBalance = async (userId) => {
-  const wallet = await Wallet.findOne({ userId });
-  if (!wallet) throw new Error('Wallet not found');
-  return wallet.balance;
+export const getWalletService = async (
+    userId
+) => {
+
+    let wallet = await Wallet.findOne({
+        where: {
+            userId,
+        },
+    });
+
+    if (!wallet) {
+
+        wallet = await Wallet.create({
+            userId,
+            balance: 0,
+        });
+
+    }
+
+    return wallet;
+
 };
 
-export const deposit = async (userId, amount) => {
-  const wallet = await Wallet.findOneAndUpdate(
-    { userId },
-    { $inc: { balance: amount } },
-    { new: true, upsert: true }
-  );
-  return wallet;
+
+export const getWalletTransactionsService = async (
+    userId
+) => {
+
+    const payments = await Payment.findAll({
+
+        where: {
+            userId,
+        },
+
+        order: [
+            ["createdAt", "DESC"],
+        ],
+
+    });
+
+    return payments;
+
 };
 
-export const withdraw = async (userId, amount) => {
-  const wallet = await Wallet.findOne({ userId });
-  if (!wallet || wallet.balance < amount) throw new Error('Insufficient funds');
-  wallet.balance -= amount;
-  return await wallet.save();
+
+export const debitWallet = async (
+    userId,
+    amount
+) => {
+
+    const wallet =
+        await Wallet.findOne({
+
+            where: {
+                userId,
+            },
+
+        });
+
+    if (!wallet) {
+
+        throw new AppError(
+            "Wallet not found.",
+            404
+        );
+
+    }
+
+    if (
+        Number(wallet.balance) <
+        Number(amount)
+    ) {
+
+        throw new AppError(
+            "Insufficient wallet balance.",
+            400
+        );
+
+    }
+
+    wallet.balance =
+        Number(wallet.balance) -
+        Number(amount);
+
+    await wallet.save();
+
+    return wallet;
+
+};
+
+export const creditWallet = async (
+    userId,
+    amount
+) => {
+
+    let wallet =
+        await Wallet.findOne({
+
+            where: {
+                userId,
+            },
+
+        });
+
+    if (!wallet) {
+
+        wallet =
+            await Wallet.create({
+
+                userId,
+
+                balance: 0,
+
+            });
+
+    }
+
+    wallet.balance =
+        Number(wallet.balance) +
+        Number(amount);
+
+    await wallet.save();
+
+    return wallet;
+
 };

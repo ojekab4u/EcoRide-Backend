@@ -1,5 +1,6 @@
 import { Op } from "sequelize";
-
+import Wallet from "../models/wallet.model.js";
+import Notification from "../models/notification.model.js";
 import User from "../models/user.model.js";
 import Ride from "../models/ride.model.js";
 import Booking from "../models/booking.model.js";
@@ -155,6 +156,7 @@ export const getPassengerDashboardService = async (userId) => {
                 attributes: [
                     "firstName",
                     "lastName",
+                    "email",
                     "profilePicture",
                     "isVerified",
                 ],
@@ -169,6 +171,13 @@ export const getPassengerDashboardService = async (userId) => {
         );
     }
 
+    // Wallet
+    const wallet = await Wallet.findOne({
+        where: { userId },
+        attributes: ["balance"],
+    });
+
+    // Dashboard statistics
     const totalBookings = await Booking.count({
         where: { passengerId: userId },
     });
@@ -194,23 +203,75 @@ export const getPassengerDashboardService = async (userId) => {
         },
     });
 
+    // Upcoming trip
+    const upcomingTrip = await Booking.findOne({
+        where: {
+            passengerId: userId,
+            bookingStatus: "ACCEPTED",
+        },
+        attributes: [
+            "id",
+            "bookingReference",
+            "fare",
+            "travelDate",
+            "bookingStatus",
+        ],
+        include: [
+            {
+                model: Ride,
+                attributes: [
+                    "pickupLocation",
+                    "destination",
+                    "departureTime",
+                    "status",
+                ],
+            },
+        ],
+        order: [["createdAt", "ASC"]],
+    });
+
+    // Current trip
     const currentTrip = await Booking.findOne({
         where: {
             passengerId: userId,
             bookingStatus: "ACCEPTED",
         },
+        attributes: [
+            "id",
+            "bookingReference",
+            "fare",
+        ],
         include: [
             {
                 model: Ride,
+                where: {
+                    status: "ONGOING",
+                },
+                required: false,
+                attributes: [
+                    "pickupLocation",
+                    "destination",
+                    "departureTime",
+                    "currentLatitude",
+                    "currentLongitude",
+                    "status",
+                ],
             },
         ],
-        order: [["createdAt", "DESC"]],
     });
 
+    // Recent bookings
     const recentBookings = await Booking.findAll({
         where: {
             passengerId: userId,
         },
+        attributes: [
+            "id",
+            "bookingReference",
+            "fare",
+            "bookingStatus",
+            "travelDate",
+        ],
         include: [
             {
                 model: Ride,
@@ -226,15 +287,27 @@ export const getPassengerDashboardService = async (userId) => {
         order: [["createdAt", "DESC"]],
     });
 
+    // Notification badge
+    const unreadNotifications = await Notification.count({
+        where: {
+            userId,
+            isRead: false,
+        },
+    });
+
     return {
 
         profile: {
-            fullName:
-                `${passenger.User.firstName} ${passenger.User.lastName}`,
-            profilePicture:
-                passenger.User.profilePicture,
-            verified:
-                passenger.User.isVerified,
+            firstName: passenger.User.firstName,
+            lastName: passenger.User.lastName,
+            fullName: `${passenger.User.firstName} ${passenger.User.lastName}`,
+            email: passenger.User.email,
+            profilePicture: passenger.User.profilePicture,
+            verified: passenger.User.isVerified,
+        },
+
+        wallet: {
+            balance: wallet?.balance ?? 0,
         },
 
         stats: {
@@ -244,9 +317,15 @@ export const getPassengerDashboardService = async (userId) => {
             cancelledTrips,
         },
 
+        upcomingTrip,
+
         currentTrip,
 
         recentBookings,
+
+        notifications: {
+            unread: unreadNotifications,
+        },
     };
 };
 

@@ -13,7 +13,7 @@ import vehicleInspectionRoutes from "./src/routes/vehicleInspection.routes.js";
 import passengerRoutes from "./src/routes/passenger.routes.js";
 import passengerDocumentRoutes from "./src/routes/passengerDocument.routes.js";
 
-// import walletRoutes from "./src/routes/wallet.routes.js";
+import walletRoutes from "./src/routes/wallet.routes.js";
 // import ratingRoutes from "./src/routes/rating.routes.js";
 
 import errorHandler from "./src/middlewares/error.middleware.js";
@@ -55,6 +55,7 @@ app.use("/api/v1/vehicles", vehicleRoutes);
 app.use("/api/v1/dashboard",dashboardRoutes);
 app.use("/api/v1/trips", tripRoutes);
 app.use("/api/v1/notifications", notificationRoutes);
+app.use("/api/v1/wallets", walletRoutes);
 app.use("/api/v1/driver/earnings", earningRoutes
 );
 app.use("/api/v1/admin", adminRoutes);
@@ -74,7 +75,6 @@ app.use(
 );
 app.use("/api/v1/maps", mapsRoutes);
 
-// app.use("/api/v1/wallets", walletRoutes);
 // app.use("/api/v1/ratings", ratingRoutes);
 app.use("/api/v1/test", testRoutes);
 
