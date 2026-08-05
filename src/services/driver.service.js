@@ -5,6 +5,8 @@ import User from "../models/user.model.js";
 import DriverProfile from "../models/driver.model.js";
 import AppError from "../utils/AppError.js";
 import { ROLES } from "../constants/roles.js";
+import Booking from "../models/booking.model.js";
+import Rating from "../models/rating.model.js";
 
 export const createDriverProfileService = async (
     userId,
@@ -77,6 +79,7 @@ export const createDriverProfileService = async (
         throw error;
     }
 };
+
 export const getDriverProfileService = async (userId) => {
 
     const driverProfile = await DriverProfile.findOne({
@@ -104,6 +107,26 @@ export const getDriverProfileService = async (userId) => {
         );
     }
 
+    const ratings = await Rating.findAll({
+        where: {
+            revieweeId: userId,
+        },
+    });
+
+    const averageRating =
+        ratings.length > 0
+            ? Number(
+                  (
+                      ratings.reduce(
+                          (sum, rating) =>
+                              sum +
+                              Number(rating.driverRating || 0),
+                          0
+                      ) / ratings.length
+                  ).toFixed(1)
+              )
+            : 0;
+
     return {
 
         profile: {
@@ -130,6 +153,11 @@ export const getDriverProfileService = async (userId) => {
 
             verified:
                 driverProfile.User.isVerified,
+
+            averageRating,
+
+            totalRatings:
+                ratings.length,
 
         },
 

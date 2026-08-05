@@ -4,6 +4,7 @@ import Wallet from "../models/wallet.model.js";
 import Notification from "../models/notification.model.js";
 import User from "../models/user.model.js";
 import Ride from "../models/ride.model.js";
+import { Rating } from "../models/index.js";
 import Booking from "../models/booking.model.js";
 import DriverProfile from "../models/driver.model.js";
 import Vehicle from "../models/vehicle.model.js";
@@ -136,10 +137,31 @@ export const getDriverDashboardService = async (userId) => {
                 },
                 bookingStatus: "PENDING",
             },
-        });
+        }); 
+   
 
-    // placeholder
-    const rating =0;
+
+const driverRatings = await Rating.findAll({
+    where: {
+        revieweeId: userId,
+    },
+});
+
+const averageDriverRating =
+    driverRatings.length
+        ? Number(
+              (
+                  driverRatings.reduce(
+                      (sum, rating) =>
+                          sum +
+                          Number(
+                              rating.driverRating || 0
+                          ),
+                      0
+                  ) / driverRatings.length
+              ).toFixed(1)
+          )
+        : 0;
 
     // Active Ride
     const activeRide =
@@ -242,10 +264,7 @@ export const getDriverDashboardService = async (userId) => {
             verified:
                 driver.User.isVerified,
 
-            rating:
-                Number(
-                    rating?.averageRating || 0
-                ).toFixed(1),
+            rating: averageDriverRating,
 
         },
 
@@ -375,7 +394,29 @@ export const getPassengerDashboardService = async (userId) => {
         },
     }) || 0;
 
-    const rating = 0; //Placeholder
+  const passengerRatings = await Rating.findAll({
+    where: {
+        revieweeId: userId,
+    },
+});
+
+const averagePassengerRating =
+    passengerRatings.length
+        ? Number(
+              (
+                  passengerRatings.reduce(
+                      (sum, rating) =>
+                          sum +
+                          Number(
+                              rating.passengerRating || 0
+                          ),
+                      0
+                  ) / passengerRatings.length
+              ).toFixed(1)
+          )
+        : 0;
+        
+    //Placeholder
     const amountSaved = 0;
 
     // Dashboard statistics
@@ -504,7 +545,7 @@ export const getPassengerDashboardService = async (userId) => {
             email: passenger.User.email,
             profilePicture: passenger.User.profilePicture,
             verified: passenger.User.isVerified,
-            rating: 0,
+            rating: averagePassengerRating,
         },
 
         wallet: {

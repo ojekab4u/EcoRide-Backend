@@ -14,7 +14,7 @@ import passengerRoutes from "./src/routes/passenger.routes.js";
 import passengerDocumentRoutes from "./src/routes/passengerDocument.routes.js";
 
 import walletRoutes from "./src/routes/wallet.routes.js";
-// import ratingRoutes from "./src/routes/rating.routes.js";
+import ratingRoutes from "./src/routes/rating.routes.js";
 
 import errorHandler from "./src/middlewares/error.middleware.js";
 import otpRoutes from "./src/routes/otp.routes.js";
@@ -53,7 +53,6 @@ app.use("/api/v1/drivers", driverRoutes);
 app.use("/api/v1/passengers", passengerRoutes);
 app.use("/api/v1/vehicles", vehicleRoutes);
 app.use("/api/v1/dashboard",dashboardRoutes);
-app.use("/api/v1/trips", tripRoutes);
 app.use("/api/v1/notifications", notificationRoutes);
 app.use("/api/v1/wallets", walletRoutes);
 app.use("/api/v1/driver/earnings", earningRoutes
@@ -75,7 +74,7 @@ app.use(
 );
 app.use("/api/v1/maps", mapsRoutes);
 
-// app.use("/api/v1/ratings", ratingRoutes);
+app.use("/api/v1/ratings", ratingRoutes);
 app.use("/api/v1/test", testRoutes);
 
 app.use("/api/v1/otp", otpRoutes);

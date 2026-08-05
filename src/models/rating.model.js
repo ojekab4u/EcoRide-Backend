@@ -2,29 +2,63 @@ import { DataTypes } from "sequelize";
 import sequelize from "../config/database.js";
 
 const Rating = sequelize.define(
-  "Rating",
-  {
-    id: {
-      type: DataTypes.UUID,
-      defaultValue: DataTypes.UUIDV4,
-      primaryKey: true,
-    },
+    "Rating",
+    {
+        id: {
+            type: DataTypes.UUID,
+            defaultValue: DataTypes.UUIDV4,
+            primaryKey: true,
+        },
 
-    driverRating: {
-      type: DataTypes.INTEGER,
-    },
+        bookingId: {
+            type: DataTypes.UUID,
+            allowNull: false,
+        },
 
-    passengerRating: {
-      type: DataTypes.INTEGER,
-    },
+        reviewerId: {
+            type: DataTypes.UUID,
+            allowNull: false,
+        },
 
-    comment: {
-      type: DataTypes.TEXT,
+        revieweeId: {
+            type: DataTypes.UUID,
+            allowNull: false,
+        },
+
+        reviewerRole: {
+            type: DataTypes.ENUM(
+                "PASSENGER",
+                "DRIVER"
+            ),
+            allowNull: false,
+        },
+
+        driverRating: {
+            type: DataTypes.INTEGER,
+            allowNull: true,
+            validate: {
+                min: 1,
+                max: 5,
+            },
+        },
+
+        passengerRating: {
+            type: DataTypes.INTEGER,
+            allowNull: true,
+            validate: {
+                min: 1,
+                max: 5,
+            },
+        },
+
+        comment: {
+            type: DataTypes.TEXT,
+            allowNull: true,
+        },
     },
-  },
-  {
-    timestamps: true,
-  }
+    {
+        timestamps: true,
+    }
 );
 
 export default Rating;
