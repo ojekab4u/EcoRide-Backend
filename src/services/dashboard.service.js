@@ -9,17 +9,21 @@ import DriverProfile from "../models/driver.model.js";
 import Vehicle from "../models/vehicle.model.js";
 import VehicleInspection from "../models/vehicleInspection.model.js";
 import PassengerProfile from "../models/passengerProfile.model.js";
+import WalletTransaction from "../models/WalletTransaction.model.js";
 
 export const getDriverDashboardService = async (userId) => {
 
+    // Driver Profile
     const driver = await DriverProfile.findOne({
         where: { userId },
         include: [
             {
                 model: User,
                 attributes: [
+                    "id",
                     "firstName",
                     "lastName",
+                    "email",
                     "profilePicture",
                     "isVerified",
                 ],
@@ -34,6 +38,12 @@ export const getDriverDashboardService = async (userId) => {
         );
     }
 
+    // Wallet
+    const wallet = await Wallet.findOne({
+        where: { userId },
+    });
+
+    // Vehicle
     const vehicle = await Vehicle.findOne({
         where: {
             driverId: driver.id,
@@ -47,6 +57,38 @@ export const getDriverDashboardService = async (userId) => {
         );
     }
 
+    // Date Range
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+
+    const todayEnd = new Date();
+    todayEnd.setHours(23, 59, 59, 999);
+
+    // Today's Earnings
+    const todayEarnings =
+        await WalletTransaction.sum("amount", {
+            include: [
+                {
+                    model: Wallet,
+                    where: {
+                        userId,
+                    },
+                    attributes: [],
+                },
+            ],
+            where: {
+                type: "TRIP_EARNING",
+                transactionType: "CREDIT",
+                createdAt: {
+                    [Op.between]: [
+                        todayStart,
+                        todayEnd,
+                    ],
+                },
+            },
+        }) || 0;
+
+    // Driver Rides
     const rides = await Ride.findAll({
         where: {
             vehicleId: vehicle.id,
@@ -57,95 +99,241 @@ export const getDriverDashboardService = async (userId) => {
         ride => ride.id
     );
 
-    const activeRide = await Ride.findOne({
-        where: {
-            vehicleId: vehicle.id,
-            status: "ONGOING",
-        },
-    });
+    // Ride Counts
+    const totalTrips = rides.length;
 
-    const recentRides = await Ride.findAll({
-        where: {
-            vehicleId: vehicle.id,
-        },
-        limit: 5,
-        order: [["createdAt", "DESC"]],
-    });
+    const scheduledTrips =
+        rides.filter(
+            ride => ride.status === "SCHEDULED"
+        ).length;
+
+    const acceptedTrips =
+        rides.filter(
+            ride => ride.status === "ACCEPTED"
+        ).length;
+
+    const ongoingTrips =
+        rides.filter(
+            ride => ride.status === "ONGOING"
+        ).length;
+
+    const completedTrips =
+        rides.filter(
+            ride => ride.status === "COMPLETED"
+        ).length;
+
+    const cancelledTrips =
+        rides.filter(
+            ride => ride.status === "CANCELLED"
+        ).length;
+
+    // Pending Requests
+    const pendingRequests =
+        await Booking.count({
+            where: {
+                rideId: {
+                    [Op.in]: rideIds,
+                },
+                bookingStatus: "PENDING",
+            },
+        });
+
+    // placeholder
+    const rating =0;
+
+    // Active Ride
+    const activeRide =
+        await Ride.findOne({
+            where: {
+                vehicleId: vehicle.id,
+                status: "ONGOING",
+            },
+            include: [
+                {
+                    model: Booking,
+                    where: {
+                        bookingStatus: "ACCEPTED",
+                    },
+                    required: false,
+                },
+            ],
+        });
+
+    // Upcoming Rides
+    const upcomingRides =
+        await Ride.findAll({
+            where: {
+                vehicleId: vehicle.id,
+                status: "SCHEDULED",
+            },
+            limit: 5,
+            order: [
+                [
+                    "departureTime",
+                    "ASC",
+                ],
+            ],
+        });
+
+    // Recent Booking Requests
+    const newBookingRequests =
+        await Booking.findAll({
+            where: {
+                rideId: {
+                    [Op.in]: rideIds,
+                },
+                bookingStatus: "PENDING",
+            },
+            include: [
+                {
+                    model: User,
+                    attributes: [
+                        "firstName",
+                        "lastName",
+                        "profilePicture",
+                    ],
+                },
+                {
+                    model: Ride,
+                    attributes: [
+                        "pickupLocation",
+                        "destination",
+                        "departureTime",
+                    ],
+                },
+            ],
+            order: [
+                [
+                    "createdAt",
+                    "DESC",
+                ],
+            ],
+            limit: 5,
+        });
+
+    // Notifications
+    const unreadNotifications =
+        await Notification.count({
+            where: {
+                userId,
+                isRead: false,
+            },
+        });
 
     return {
 
         profile: {
+
+            firstName:
+                driver.User.firstName,
+
+            lastName:
+                driver.User.lastName,
+
             fullName:
                 `${driver.User.firstName} ${driver.User.lastName}`,
+
+            email:
+                driver.User.email,
+
             profilePicture:
                 driver.User.profilePicture,
+
             verified:
                 driver.User.isVerified,
-            vehiclePlate:
-                vehicle.plateNumber,
-            vehicleModel:
-                vehicle.vehicleModel,
+
+            rating:
+                Number(
+                    rating?.averageRating || 0
+                ).toFixed(1),
+
+        },
+
+        wallet: {
+
+            balance:
+                Number(
+                    wallet?.balance || 0
+                ),
+
+            todayEarnings:
+                Number(
+                    todayEarnings
+                ),
+
+            currency: "NGN",
+
         },
 
         stats: {
 
-            totalRides:
-                rides.length,
+            totalTrips,
 
-            scheduledRides:
-                rides.filter(r =>
-                    r.status === "SCHEDULED"
-                ).length,
+            scheduledTrips,
 
-            acceptedRides:
-                rides.filter(r =>
-                    r.status === "ACCEPTED"
-                ).length,
+            acceptedTrips,
 
-            ongoingRides:
-                rides.filter(r =>
-                    r.status === "ONGOING"
-                ).length,
+            ongoingTrips,
 
-            completedRides:
-                rides.filter(r =>
-                    r.status === "COMPLETED"
-                ).length,
+            completedTrips,
 
-            cancelledRides:
-                rides.filter(r =>
-                    r.status === "CANCELLED"
-                ).length,
+            cancelledTrips,
 
-            pendingBookings:
-                await Booking.count({
-                    where: {
-                        rideId: {
-                            [Op.in]: rideIds,
-                        },
-                        bookingStatus: "PENDING",
-                    },
-                }),
-
-            acceptedBookings:
-                await Booking.count({
-                    where: {
-                        rideId: {
-                            [Op.in]: rideIds,
-                        },
-                        bookingStatus: "ACCEPTED",
-                    },
-                }),
+            pendingRequests,
 
         },
 
-        activeRide,
+        activeRide:
+            activeRide
+                ? {
+                      id:
+                          activeRide.id,
 
-        recentRides,
+                      pickupLocation:
+                          activeRide.pickupLocation,
+
+                      destination:
+                          activeRide.destination,
+
+                      departureTime:
+                          activeRide.departureTime,
+
+                      remainingSeats:
+                          activeRide.remainingSeats,
+
+                      passengers:
+                          activeRide.Bookings
+                              ?.length || 0,
+
+                      estimatedEarning:
+                          Number(
+                              activeRide.pricePerSeat
+                          ) *
+                          (
+                              activeRide.Bookings
+                                  ?.length || 0
+                          ),
+
+                      status:
+                          activeRide.status,
+                  }
+                : null,
+
+        upcomingRides,
+
+        newBookingRequests,
+
+        notifications: {
+
+            unread:
+                unreadNotifications,
+
+        },
 
     };
 
 };
+
 
 export const getPassengerDashboardService = async (userId) => {
 
@@ -310,13 +498,13 @@ export const getPassengerDashboardService = async (userId) => {
 
     return {
 
-        profile: {           
-            id: passenger.User.id,
-            fullName: `${passenger.User.firstName} ${passenger.User.lastName}`,
+       profile: {
+            firstName: passenger.User.firstName,
+            lastName: passenger.User.lastName,
             email: passenger.User.email,
             profilePicture: passenger.User.profilePicture,
             verified: passenger.User.isVerified,
-            rating,
+            rating: 0,
         },
 
         wallet: {
@@ -334,7 +522,12 @@ export const getPassengerDashboardService = async (userId) => {
 },
         upcomingTrip,
 
-        currentTrip,
+        currentTrip: currentTrip ? {
+        id: currentTrip.id,
+        bookingReference: currentTrip.bookingReference,
+        fare: currentTrip.fare,
+        Ride: currentTrip.Ride,
+      }  : null,
 
         recentBookings,
 
