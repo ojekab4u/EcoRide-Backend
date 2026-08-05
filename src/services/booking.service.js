@@ -6,6 +6,7 @@ import Booking from "../models/booking.model.js";
 import Ride from "../models/ride.model.js";
 import PassengerProfile from "../models/passengerProfile.model.js";
 import Vehicle from "../models/vehicle.model.js";
+import Wallet from "../models/wallet.model.js";
 import Payment from "../models/payment.model.js";
 import AppError from "../utils/AppError.js";
 import { generateBookingReference } from "../utils/generateBookingReference.js";
@@ -142,24 +143,30 @@ if ( numberOfSeats > availableSeats)
         );
     }
 
+   
+
     // Calculate fare
     const fare =
         ride.pricePerSeat *
-        numberOfSeats;
+        numberOfSeats;  
+        
+     const wallet = await Wallet.findOne({
+            where: { userId },
+        });
 
-    await debitWallet(
-        userId,
-        fare
-    );
+        if (!wallet) {
+            throw new AppError(
+                "Please fund your wallet.",
+                400
+            );
+        }
 
-    await Payment.create({
-    userId,
-    amount: fare,
-    paymentMethod: "WALLET",
-    paymentStatus: "SUCCESS",
-    paymentType: "BOOKING",
-    reference: generatePaymentReference(),
-});
+        if (Number(wallet.balance) < Number(fare)) {
+            throw new AppError(
+                "Insufficient wallet balance.",
+                400
+            );
+        }
 
     // Create booking
     const booking = await Booking.create({
@@ -202,7 +209,7 @@ if ( numberOfSeats > availableSeats)
     await createNotification({
     userId: booking.passengerId,
     title: "Booking Submitted",
-    message: `Your booking request has been submitted successfully. ₦${fare} has been deducted from your wallet.`,
+    message: `Your booking request has been submitted successfully.`,
     type: "BOOKING",
     referenceId: booking.id,
 });
@@ -658,36 +665,33 @@ export const acknowledgeDriverArrivalService = async (
     passengerId
 ) => {
 
-    const booking =
-        await Booking.findOne({
-
-            where: {
-                id: bookingId,
-                passengerId,
-            },
-
-            include: [
-                Ride,
-            ],
-
-        });
+    const booking = await Booking.findOne({
+        where: {
+            id: bookingId,
+            passengerId,
+        },
+        include: [Ride],
+    });
 
     if (!booking) {
-
-        throw new AppError(
-            "Booking not found.",
-            404
-        );
-
+        throw new AppError("Booking not found.", 404);
     }
 
-    if (!booking.Ride.driverArrivedAt) {
+    const ride = booking.Ride;
 
+    const vehicle = await Vehicle.findByPk(
+        ride.vehicleId
+    );
+
+    const driver = await DriverProfile.findByPk(
+        vehicle.driverId
+    );
+
+    if (!ride.driverArrivedAt) {
         throw new AppError(
             "Driver has not arrived yet.",
             400
         );
-
     }
 
     booking.passengerAcknowledged = true;
@@ -696,13 +700,12 @@ export const acknowledgeDriverArrivalService = async (
     await booking.save();
 
     await createNotification({
-    userId: driver.userId,
-    title: "Passenger Ready",
-    message: "The passenger has acknowledged your arrival.",
-    type: "RIDE",
-    referenceId: booking.id,
-});
+        userId: driver.userId,
+        title: "Passenger Ready",
+        message: "The passenger acknowledged your arrival.",
+        type: "RIDE",
+        referenceId: ride.id,
+    });
 
     return booking;
-
 };

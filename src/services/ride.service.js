@@ -1,7 +1,14 @@
+import sequelize from "../config/database.js";
 import { Op } from "sequelize";
 import User from "../models/user.model.js";
 import Booking from "../models/booking.model.js";
 import Ride from "../models/ride.model.js";
+import Payment  from "../models/payment.model.js";
+import  generatePaymentReference  from "../utils/generatePaymentReference.js";
+import { debitWallet,
+        creditWallet
+ } from "./wallet.service.js";
+
 import Vehicle from "../models/vehicle.model.js";
 import DriverProfile from "../models/driver.model.js";
 import VehicleInspection from "../models/vehicleInspection.model.js";
@@ -658,14 +665,18 @@ const notAcknowledged =
 
     ride.status = "ONGOING";
     await ride.save();
-    await createNotification({
-    userId: booking.passengerId,
-    title: "Ride Started",
-    message: "Your trip has started.",
-    type: "RIDE",
-    referenceId: ride.id,
-});
+   
+    for (const booking of confirmedBookings) {
 
+    await createNotification({
+        userId: booking.passengerId,
+        title: "Ride Started",
+        message: "Your trip has started.",
+        type: "RIDE",
+        referenceId: ride.id,
+    });
+
+}
     return ride;
 
 };
@@ -675,7 +686,6 @@ export const completeRideService = async (
     rideId
 ) => {
 
-    // Find driver
     const driver = await DriverProfile.findOne({
         where: { userId },
     });
@@ -687,7 +697,6 @@ export const completeRideService = async (
         );
     }
 
-    // Find ride
     const ride = await Ride.findByPk(rideId);
 
     if (!ride) {
@@ -697,7 +706,6 @@ export const completeRideService = async (
         );
     }
 
-    // Find vehicle
     const vehicle = await Vehicle.findByPk(
         ride.vehicleId
     );
@@ -709,7 +717,6 @@ export const completeRideService = async (
         );
     }
 
-    // Ownership check
     if (vehicle.driverId !== driver.id) {
         throw new AppError(
             "Unauthorized.",
@@ -738,42 +745,115 @@ export const completeRideService = async (
         );
     }
 
-    // Complete ride
-    ride.status = "COMPLETED";
-    await ride.save();
-    // Passenger
-    await createNotification({
-    userId: booking.passengerId,
-    title: "Trip Completed",
-    message: "Thank you for riding with EcoRide.",
-    type: "RIDE",
-    referenceId: ride.id,
-});
-    // Driver
-    await createNotification({
-    userId: driver.userId,
-    title: "Trip Completed",
-    message: "Trip completed successfully.",
-    type: "RIDE",
-    referenceId: ride.id,
-});
-
-    // Complete all confirmed bookings
-    await Booking.update(
-        {
-            bookingStatus: "COMPLETED",
+    const bookings = await Booking.findAll({
+        where: {
+            rideId,
+            bookingStatus: "ACCEPTED",
         },
-        {
+    });
+
+    if (!bookings.length) {
+        throw new AppError(
+            "No accepted bookings found.",
+            400
+        );
+    }
+    
+    const transaction = await sequelize.transaction();
+
+try {
+
+    let totalDriverEarnings = 0;
+
+    for (const booking of bookings) {
+
+        const existingPayment = await Payment.findOne({
             where: {
-                rideId,
-                bookingStatus: "ACCEPTED",
+                bookingId: booking.id,
+                paymentType: "BOOKING",
+                paymentStatus: "SUCCESS",
             },
+            transaction,
+        });
+
+        let payment = existingPayment;
+
+        if (!payment) {
+
+            payment = await Payment.create({
+                userId: booking.passengerId,
+                bookingId: booking.id,
+                amount: booking.fare,
+                paymentMethod: "WALLET",
+                paymentStatus: "SUCCESS",
+                paymentType: "BOOKING",
+                reference: generatePaymentReference(),
+            }, { transaction });
+
+            await debitWallet(
+                booking.passengerId,
+                booking.fare,
+                {
+                    paymentId: payment.id,
+                    type: "BOOKING_PAYMENT",
+                    description: `Payment for booking ${booking.bookingReference}`,
+                    transaction,
+                }
+            );
+
+        }
+
+        totalDriverEarnings += Number(booking.fare);
+
+        booking.bookingStatus = "COMPLETED";
+
+        await booking.save({ transaction });
+
+        await createNotification({
+            userId: booking.passengerId,
+            title: "Trip Completed",
+            message: `₦${booking.fare} has been deducted for your completed trip.`,
+            type: "PAYMENT",
+            referenceId: payment.id,
+        });
+
+    }
+
+    await creditWallet(
+        driver.userId,
+        totalDriverEarnings,
+        {
+            paymentId: null,
+            type: "TRIP_EARNING",
+            description: `Trip earnings for Ride ${ride.id}`,
+            transaction,
         }
     );
 
+    await createNotification({
+        userId: driver.userId,
+        title: "Trip Earnings",
+        message: `₦${totalDriverEarnings} has been credited to your wallet.`,
+        type: "PAYMENT",
+        referenceId: ride.id,
+    });
+
+    ride.status = "COMPLETED";
+
+    await ride.save({ transaction });
+
+    await transaction.commit();
+
     return ride;
 
-};
+} catch (error) {
+
+    await transaction.rollback();
+
+    throw error;
+
+}
+}
 
 export const driverArrivedService = async (
     userId,
@@ -807,13 +887,25 @@ export const driverArrivedService = async (
     ride.driverArrivedAt = new Date();
 
     await ride.save();
+
+    const bookings = await Booking.findAll({
+        where: {
+            rideId,
+            bookingStatus: "ACCEPTED",
+        },
+    });
+
+   for (const booking of bookings) {
+
     await createNotification({
-    userId: booking.passengerId,
-    title: "Driver Arrived",
-    message: "Your driver has arrived at the pickup point.",
-    type: "RIDE",
-    referenceId: ride.id,
-});
+        userId: booking.passengerId,
+        title: "Driver Arrived",
+        message: "Your driver has arrived.",
+        type: "RIDE",
+        referenceId: ride.id,
+    });
+
+}
 
     return ride;
 

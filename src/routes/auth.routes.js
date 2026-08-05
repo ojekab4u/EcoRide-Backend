@@ -1,8 +1,10 @@
 import express from "express";
+import { authenticate } from "../middlewares/auth.middleware.js";
 
 import {
 register,
 login,
+logout,
 changeUserPassword,
 forgotPassword,
 resetPassword,
@@ -29,6 +31,12 @@ const router = express.Router();
 router.post("/register", register);
 
 router.post("/login", login);
+router.post(
+    "/logout",
+    authenticate,
+    logout
+);
+
 router.patch(
     "/select-role",
     protect,
@@ -36,6 +44,7 @@ router.patch(
     validate,
     selectRole
 );
+
 router.patch(
 
     "/change-password",

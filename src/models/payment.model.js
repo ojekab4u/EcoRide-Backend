@@ -46,6 +46,10 @@ const Payment = sequelize.define(
       allowNull: false,
   },
 
+  bookingId: {
+    type: DataTypes.UUID,
+    allowNull: true,
+},
     reference: {
       type: DataTypes.STRING,
       unique: true,

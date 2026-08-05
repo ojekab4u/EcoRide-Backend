@@ -3,6 +3,8 @@ import AppError from "../utils/AppError.js";
 import generatePaymentReference from "../utils/generatePaymentReference.js";
 import { createNotification } from "./notification.service.js";
 import { creditWallet } from "./wallet.service.js";
+import {createWalletTransaction } from "../utils/createWalletTransaction.js"
+
 
 export const initializePaymentService = async (
     userId,
@@ -76,7 +78,12 @@ export const verifyPaymentService = async (
 
     const wallet = await creditWallet(
         payment.userId,
-        payment.amount
+        payment.amount,
+         {
+        paymentId: payment.id,
+        type: "TOP_UP",
+        description: "Wallet funded successfully",
+    }
     );
 
     await createNotification({
@@ -113,25 +120,15 @@ export const getPaymentHistoryService = async (
 export const refundPaymentService = async (
     reference
 ) => {
+
     const payment = await Payment.findOne({
-        where: {
-            reference,
-        },
-
+        where: { reference },
     });
-    if (!payment) {
 
+    if (!payment) {
         throw new AppError(
             "Payment not found.",
             404
-        );
-
-    }
-    if (payment.paymentStatus !== "SUCCESS") {
-
-        throw new AppError(
-            "Only successful payments can be refunded.",
-            400
         );
     }
 
@@ -139,15 +136,27 @@ export const refundPaymentService = async (
         throw new AppError(
             "Payment has already been refunded.",
             400
-        );}
+        );
+    }
+
+    if (payment.paymentStatus !== "SUCCESS") {
+        throw new AppError(
+            "Only successful payments can be refunded.",
+            400
+        );
+    }
 
     payment.paymentStatus = "REFUNDED";
-
     await payment.save();
 
     const wallet = await creditWallet(
         payment.userId,
-        payment.amount
+        payment.amount,
+        {
+            paymentId: payment.id,
+            type: "REFUND",
+            description: `Refund for payment ${payment.reference}`,
+        }
     );
 
     await createNotification({
@@ -162,5 +171,4 @@ export const refundPaymentService = async (
         payment,
         wallet,
     };
-
 };
