@@ -1,4 +1,4 @@
-import WalletTransaction from "../models/walletTransaction.model.js";
+import WalletTransaction from "../models/WalletTransaction.model.js";
 
 export const createWalletTransaction = async ({
     wallet,
