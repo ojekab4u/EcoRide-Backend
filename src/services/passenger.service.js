@@ -7,7 +7,7 @@ import Wallet from "../models/wallet.model.js";
 import Booking from "../models/booking.model.js";
 import Ride from "../models/ride.model.js";
 import { Op } from "sequelize";
-import AppError from "../utils/appError.js";
+import AppError from "../utils/AppError.js";
 
 
 
