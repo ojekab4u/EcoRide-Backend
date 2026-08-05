@@ -206,6 +206,25 @@ Notification.belongsTo(User, {
     foreignKey: "userId",
 });
 
+// Wallet
+User.hasOne(Wallet, {
+    foreignKey: "userId",
+    onDelete: "CASCADE",
+});
+
+Wallet.belongsTo(User, {
+    foreignKey: "userId",
+});
+
+// Payment
+User.hasMany(Payment, {
+    foreignKey: "userId",
+    onDelete: "CASCADE",
+});
+
+Payment.belongsTo(User, {
+    foreignKey: "userId",
+});
 
 export {
     User,

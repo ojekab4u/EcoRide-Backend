@@ -6,13 +6,14 @@ import Booking from "../models/booking.model.js";
 import Ride from "../models/ride.model.js";
 import PassengerProfile from "../models/passengerProfile.model.js";
 import Vehicle from "../models/vehicle.model.js";
+import Payment from "../models/payment.model.js";
 import AppError from "../utils/AppError.js";
 import { generateBookingReference } from "../utils/generateBookingReference.js";
 import {
     calculateAvailableSeats,
 } from "../helpers/calculateAvailableSeats.js";
 import { createNotification } from "./notification.service.js";
-
+import { debitWallet } from "./wallet.service.js";
 
 
 export const createBookingService = async (
@@ -60,7 +61,7 @@ export const createBookingService = async (
         );
     }
 
-    // Driver must allow recurring bookings
+    // Ensure driver allowed recurring bookings
     if (isRecurring && !ride.allowRecurringBooking) {
         throw new AppError(
             "This ride does not accept recurring bookings.",
@@ -146,6 +147,20 @@ if ( numberOfSeats > availableSeats)
         ride.pricePerSeat *
         numberOfSeats;
 
+    await debitWallet(
+        userId,
+        fare
+    );
+
+    await Payment.create({
+    userId,
+    amount: fare,
+    paymentMethod: "WALLET",
+    paymentStatus: "SUCCESS",
+    paymentType: "BOOKING",
+    reference: generatePaymentReference(),
+});
+
     // Create booking
     const booking = await Booking.create({
         passengerId: userId,
@@ -187,7 +202,7 @@ if ( numberOfSeats > availableSeats)
     await createNotification({
     userId: booking.passengerId,
     title: "Booking Submitted",
-    message: "Your booking request has been submitted successfully.",
+    message: `Your booking request has been submitted successfully. ₦${fare} has been deducted from your wallet.`,
     type: "BOOKING",
     referenceId: booking.id,
 });
