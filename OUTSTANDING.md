@@ -11,18 +11,9 @@
 - [ ] Ride ranking algorithm
 
 ## Payment Module
-- [ ] Fare calculation automation
 - [ ] Commission deduction
 - [ ] Driver payout
-- [ ] Digital Wallet
-- [ ] Refund Management
 
-## Notifications
-- [x]In-App Notifications
-- [x]Booking Confirmation Notification
-- [x] Ride Reminder Notification
-- [x] Driver Arrival Notification
-- [ ] Payment Notification
 
 ## Ratings & Reviews
 - [ ] Passenger rates Driver
