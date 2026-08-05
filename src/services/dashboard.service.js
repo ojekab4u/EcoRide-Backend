@@ -1,4 +1,5 @@
-import { Op } from "sequelize";
+import { Op, fn, col } from "sequelize";
+import Payment from "../models/payment.model.js";
 import Wallet from "../models/wallet.model.js";
 import Notification from "../models/notification.model.js";
 import User from "../models/user.model.js";
@@ -177,6 +178,18 @@ export const getPassengerDashboardService = async (userId) => {
         attributes: ["balance"],
     });
 
+    const amountSpent =
+    await Payment.sum("amount", {
+        where: {
+            userId,
+            paymentType: "BOOKING",
+            paymentStatus: "SUCCESS",
+        },
+    }) || 0;
+
+    const rating = 0; //Placeholder
+    const amountSaved = 0;
+
     // Dashboard statistics
     const totalBookings = await Booking.count({
         where: { passengerId: userId },
@@ -297,26 +310,28 @@ export const getPassengerDashboardService = async (userId) => {
 
     return {
 
-        profile: {
-            firstName: passenger.User.firstName,
-            lastName: passenger.User.lastName,
+        profile: {           
+            id: passenger.User.id,
             fullName: `${passenger.User.firstName} ${passenger.User.lastName}`,
             email: passenger.User.email,
             profilePicture: passenger.User.profilePicture,
             verified: passenger.User.isVerified,
+            rating,
         },
 
         wallet: {
-            balance: wallet?.balance ?? 0,
+           balance: Number(wallet?.balance || 0),
+    currency: "NGN",
         },
 
         stats: {
-            totalBookings,
+            totalTrips: totalBookings,
             upcomingTrips,
             completedTrips,
             cancelledTrips,
-        },
-
+            amountSpent: Number(amountSpent),
+            amountSaved,
+},
         upcomingTrip,
 
         currentTrip,

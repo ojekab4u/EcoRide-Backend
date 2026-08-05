@@ -4,6 +4,7 @@ import User from "../models/user.model.js";
 import EmergencyContact from "../models/emergencyContact.model.js";
 import PassengerDocument from "../models/passengerDocument.model.js";
 import Wallet from "../models/wallet.model.js";
+import Payment from "../models/payment.model.js";
 import Booking from "../models/booking.model.js";
 import Ride from "../models/ride.model.js";
 import { Op } from "sequelize";
@@ -90,6 +91,15 @@ export const getPassengerProfileService = async (
         attributes: ["balance"],
     });
 
+
+    const totalTrips = await Booking.count({
+        where: {
+            passengerId: userId,
+            bookingStatus: "COMPLETED",
+        },
+    });   
+    
+
     // Booking statistics
     const bookings = await Booking.findAll({
         where: {
@@ -105,13 +115,23 @@ export const getPassengerProfileService = async (
 
     const totalRides = bookings.length;
 
-    const amountSpent = bookings.reduce(
-        (sum, booking) => sum + Number(booking.fare),
-        0
-    );
+    const amountSpent =
+    await Payment.sum("amount", {
+        where: {
+            userId,
+            paymentType: "BOOKING",
+            paymentStatus: "SUCCESS",
+        },
+    }) || 0;
 
     // Placeholder for referral/discount 
     const amountSaved = 0;
+    
+    const rating = 0;
+
+    const walletBalance = Number(
+        wallet?.balance || 0
+    );
 
     // Recent bookings 
     const recentBookings = await Booking.findAll({
@@ -131,21 +151,47 @@ export const getPassengerProfileService = async (
         limit: 5,
     });
 
+    let completedFields = 0;
+
+    const fields = [
+        profile.gender,
+        profile.dateOfBirth,
+        profile.occupation,
+        profile.homeLocation,
+        profile.officeLocation,
+        profile.User.phoneNumber,
+        profile.User.profilePicture,
+    ];
+
+    fields.forEach(field => {
+        if (field) completedFields++;
+    });
+
+    const profileCompletion = Math.round(
+        (completedFields / fields.length) * 100
+    );
+
     return {
-        ...profile.toJSON(),
 
-        wallet: {
-            balance: wallet?.balance ?? 0,
-        },
+    ...profile.toJSON(),
 
-        statistics: {
-            totalRides,
-            amountSpent,
-            amountSaved,
-        },
+    wallet: {
+        balance: walletBalance,
+        currency: "NGN",
+    },
 
-        recentBookings,
-    };
+    stats: {
+        totalTrips,
+        amountSpent: Number(amountSpent),
+        amountSaved,
+        rating,
+    },
+
+    profileCompletion,
+
+    referralCode: null,
+
+};
 };
 
 export const updatePassengerProfileService = async (
