@@ -15,10 +15,6 @@
 - [ ] Driver payout
 
 
-## Ratings & Reviews
-- [ ] Passenger rates Driver
-- [ ] Driver rates Passenger
-- [ ] Trip Feedback
 
 ## Analytics
 - [ ] Ride Statistics

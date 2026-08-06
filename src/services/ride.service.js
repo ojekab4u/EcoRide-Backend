@@ -432,15 +432,17 @@ export const getDriverRideHistoryService = async (
 
 };
 
-export const searchRidesService = async (
-    query
-) => {
+export const searchRidesService = async (query) => {
 
     const {
         pickup,
         destination,
         departureDate,
         seats = 1,
+        minPrice,
+        maxPrice,
+        vehicleType,
+        verifiedOnly,
         page,
         limit,
     } = query;
@@ -451,115 +453,214 @@ export const searchRidesService = async (
     });
 
     const where = {
-
-        status: "SCHEDULED",       
+        status: {
+            [Op.in]: ["SCHEDULED", "ACCEPTED"],
+        },
     };
 
-    if (destination) {
-
-        where.destination = {
-            [Op.iLike]: `%${destination}%`,
-        };
-
-    }
-
     if (pickup) {
-
         where.pickupLocation = {
             [Op.iLike]: `%${pickup}%`,
         };
+    }
 
+    if (destination) {
+        where.destination = {
+            [Op.iLike]: `%${destination}%`,
+        };
     }
 
     if (departureDate) {
+
+        if (isNaN(Date.parse(departureDate))) {
+            throw new AppError(
+                "departureDate must be in YYYY-MM-DD format.",
+                400
+            );
+        }
+
         where.departureTime = {
             [Op.between]: [
                 new Date(`${departureDate}T00:00:00`),
-                new Date(`${departureDate}T23:59:59`)
-            ]
+                new Date(`${departureDate}T23:59:59`),
+            ],
         };
-
     }
 
-    const {count,rows,} = await Ride.findAndCountAll({
+    if (minPrice || maxPrice) {
+
+        where.pricePerSeat = {};
+
+        if (minPrice) {
+            where.pricePerSeat[Op.gte] = Number(minPrice);
+        }
+
+        if (maxPrice) {
+            where.pricePerSeat[Op.lte] = Number(maxPrice);
+        }
+    }
+
+    const { rows } = await Ride.findAndCountAll({
 
         where,
 
         include: [
             {
-
                 model: Vehicle,
+
+                where: vehicleType
+                    ? { vehicleType }
+                    : undefined,
+
+                attributes: [
+                    "brand",
+                    "model",
+                    "year",
+                    "color",
+                    "plateNumber",
+                    "vehicleType",
+                    "seatCapacity",
+                ],
 
                 include: [
                     {
                         model: DriverProfile,
-                       include: [
 
-    {
+                        attributes: [
+                            "yearsOfExperience",
+                        ],
 
-        model: User,
-        attributes: [
-            "id",
-            "firstName",
-            "lastName",
-            "profilePicture",
-            "phoneNumber",
-            "isVerified",
-        ],
-    },
-]
-                    }
+                        include: [
+                            {
+                                model: User,
 
-                ]
+                                attributes: [
+                                    "id",
+                                    "firstName",
+                                    "lastName",
+                                    "profilePicture",
+                                    "phoneNumber",
+                                    "isVerified",
+                                ],
 
-            }
-
+                                where:
+                                    verifiedOnly === "true"
+                                        ? {
+                                              isVerified: true,
+                                          }
+                                        : undefined,
+                            },
+                        ],
+                    },
+                ],
+            },
         ],
 
         order: [
             ["departureTime", "ASC"],
+            ["pricePerSeat", "ASC"],
         ],
 
-        limit:
-            pagination.limit,
-
-        offset:
-            pagination.offset,
+        limit: pagination.limit,
+        offset: pagination.offset,
 
     });
+
     const travelDate =
-    departureDate ||
-    new Date().toISOString().split("T")[0];
+        departureDate ||
+        new Date().toISOString().split("T")[0];
 
-const rides = [];
+    const rides = [];
 
-for (const ride of rows) {
+    for (const ride of rows) {
 
-    const available =
-        await calculateAvailableSeats(
-            ride,
-            travelDate
-        );
+        const availableSeats =
+            await calculateAvailableSeats(
+                ride,
+                travelDate
+            );
 
-    if (available >= Number(seats)) {
+        if (availableSeats < Number(seats)) {
+            continue;
+        }
 
-        ride.setDataValue(
-            "remainingSeats",
-            available
-        );
+        rides.push({
 
-        rides.push(ride);
+            id: ride.id,
+
+            pickupLocation:
+                ride.pickupLocation,
+
+            destination:
+                ride.destination,
+
+            departureTime:
+                ride.departureTime,
+
+            pricePerSeat:
+                Number(ride.pricePerSeat),
+
+            availableSeats,
+
+            status:
+                ride.status,
+
+            driver: {
+
+                id:
+                    ride.Vehicle?.DriverProfile?.User?.id,
+
+                firstName:
+                    ride.Vehicle?.DriverProfile?.User?.firstName,
+
+                lastName:
+                    ride.Vehicle?.DriverProfile?.User?.lastName,
+
+                profilePicture:
+                    ride.Vehicle?.DriverProfile?.User?.profilePicture,
+
+                verified:
+                    ride.Vehicle?.DriverProfile?.User?.isVerified ?? false,
+
+                yearsOfExperience:
+                    ride.Vehicle?.DriverProfile?.yearsOfExperience ?? 0,
+
+            },
+
+            vehicle: {
+
+                brand:
+                    ride.Vehicle?.brand,
+
+                model:
+                    ride.Vehicle?.model,
+
+                year:
+                    ride.Vehicle?.year,
+
+                color:
+                    ride.Vehicle?.color,
+
+                plateNumber:
+                    ride.Vehicle?.plateNumber,
+
+                vehicleType:
+                    ride.Vehicle?.vehicleType,
+
+                seatCapacity:
+                    ride.Vehicle?.seatCapacity,
+
+            },
+
+        });
 
     }
-
-}
 
     return getPagingData(
         rides.length,
         rides,
         pagination.currentPage,
         pagination.limit
-
     );
 
 };

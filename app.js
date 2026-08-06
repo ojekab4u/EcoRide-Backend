@@ -65,7 +65,7 @@ app.use(
   driverDocumentRoutes
 );
 app.use(
-  "/api/v1/vehicle-inspections",
+  "/api/v1/inspections",
   vehicleInspectionRoutes
 );
 app.use(
@@ -81,5 +81,5 @@ app.use("/api/v1/otp", otpRoutes);
 app.use(errorHandler);
 
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+ 
 });

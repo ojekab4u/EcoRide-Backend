@@ -17,6 +17,8 @@ import EmergencyContact from "./emergencyContact.model.js";
 import PassengerDocument from "./passengerDocument.model.js";
 import CorporateProfile from "./corporateProfile.model.js";
 import CorporateDocument from "./corporateDocument.model.js";
+import CorporateEmployee from "./corporateEmployee.model.js"
+
 
 // USER RELATIONSHIPS
 User.hasOne(DriverProfile, {
@@ -219,6 +221,24 @@ CorporateDocument.belongsTo(CorporateProfile, {
     foreignKey: "corporateProfileId",
 });
 
+CorporateProfile.hasMany(CorporateEmployee,{
+    foreignKey:"corporateId"
+});
+
+CorporateEmployee.belongsTo(CorporateProfile,{
+    foreignKey:"corporateId"
+});
+
+User.hasOne(CorporateEmployee,{
+    foreignKey:"userId"
+});
+
+CorporateEmployee.belongsTo(User,{
+    foreignKey:"userId"
+});
+
+
+
 User.hasMany(Notification, {
     foreignKey: "userId",
     onDelete: "CASCADE",
@@ -279,5 +299,6 @@ export {
     PassengerDocument,
     CorporateProfile,
     CorporateDocument,
-    WalletTransaction
+    WalletTransaction,
+    CorporateEmployee,
 };

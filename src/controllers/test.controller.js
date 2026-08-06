@@ -12,9 +12,7 @@ export const uploadTest = async (req, res) => {
             imageUrl,
         });
 
-    } catch (error) {
-        console.error(error);
-
+    } catch (error) {      
         res.status(500).json({
             success: false,
             message: error.message,

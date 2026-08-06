@@ -20,18 +20,16 @@ const sequelize = new Sequelize(
 export const connectDB = async () => {
     try {
         await sequelize.authenticate();
-        console.log("Database Connected");
-
-        // Import all models and relationships
+    
         await import("../models/index.js");
 
         await sequelize.sync({
         alter: true,
         });
 
-        console.log("Database Synced");
+        
     } catch (error) {
-        console.error(error.message);
+      
     }
 };
 

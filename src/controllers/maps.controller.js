@@ -21,9 +21,7 @@ export const autocomplete = async (req, res, next) => {
 
         return res.json(response.data);
 
-    } catch (error) {
-
-        console.log(error.response?.data);
+    } catch (error) {      
 
         next(error);
 

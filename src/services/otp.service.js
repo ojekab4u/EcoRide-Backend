@@ -37,7 +37,7 @@ export const sendEmailOTPService = async (email) => {
 try {
     await sendOTPEmail(user.email, code);
 } catch (error) {
-    console.error("Failed to send OTP email:", error);
+   
 }
 
     return;
