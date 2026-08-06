@@ -15,6 +15,9 @@ import {
 } from "../helpers/calculateAvailableSeats.js";
 import { createNotification } from "./notification.service.js";
 import { debitWallet } from "./wallet.service.js";
+import {
+    getBookingHistory,
+} from "../controllers/bookingHistory.controller.js";
 
 
 export const createBookingService = async (

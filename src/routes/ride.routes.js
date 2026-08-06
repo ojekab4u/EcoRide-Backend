@@ -28,6 +28,11 @@ import {
     updateRideLocationValidator,
 } from "../validators/ride.validator.js";
 
+import {
+    getRideHistory,
+} from "../controllers/rideHistory.controller.js";
+
+
 const router = express.Router();
 
 router.post(
@@ -40,12 +45,7 @@ router.post(
 );
 
 router.get("/", getAllRides);
-router.get(
-    "/history/me",
-    protect,
-    authorize(ROLES.DRIVER),
-    getDriverRideHistory
-);
+
 router.get(
     "/search",
     protect,
@@ -53,10 +53,28 @@ router.get(
     searchRides
 );
 router.get(
+    "/history",
+    protect,
+    authorize(
+        ROLES.PASSENGER,
+        ROLES.DRIVER
+    ),
+    getRideHistory
+);
+
+router.get(
+    "/history/me",
+    protect,
+    authorize(ROLES.DRIVER),
+    getDriverRideHistory
+);
+
+router.get(
     "/:id",
     protect,    
     getRideById
 );
+
 
 router.patch(
     "/:id",
@@ -110,10 +128,12 @@ router.patch(
     validate,
     updateRideLocation
 );
+
 router.get(
     "/:id/location",
     protect,
     authorize(ROLES.PASSENGER),
     getRideLocation
 );
+
 export default router;

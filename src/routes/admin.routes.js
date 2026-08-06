@@ -39,11 +39,22 @@ import {
     reviewInspection,
 } from "../controllers/vehicleInspectionAdmin.controller.js";
 
+import {
+    getAdminDashboard,
+} from "../controllers/adminAnalytics.controller.js";
+
 import {reviewInspectionValidator} from "../validators/vehicleInspection.validator.js"
 
 
 const router = express.Router();
 
+
+router.get(
+    "/dashboard",
+    protect,
+    authorize(ROLES.PLATFORM_ADMIN),
+    getAdminDashboard
+);
 
 // DRIVER REVIEW
 router.get(
