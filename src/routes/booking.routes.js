@@ -22,6 +22,10 @@ import {
     cancelBookingValidator,
     rejectBookingValidator
 } from "../validators/booking.validator.js";
+import {
+    getBookingHistory,
+} from "../controllers/bookingHistory.controller.js";
+
 
 const router = express.Router();
 
@@ -44,6 +48,14 @@ router.get(
     protect,
     authorize(ROLES.DRIVER),
     getDriverBookings
+);
+router.get(
+    "/history",
+    protect,
+    authorize(
+        ROLES.PASSENGER
+    ),
+    getBookingHistory
 );
 router.get(
     "/:id",
