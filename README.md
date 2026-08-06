@@ -1,70 +1,79 @@
-# EcoRide-Backend API
+# EcoRide Backend API
 
-# Team
-Group 6 Capstone Project
+## Group 6 Capstone Project
 
-## Project Status
-Currently under active development.
+## Project Overview
 
-## Table of Contents
-- Introduction
-- Features 
-- Tech Stack 
-- Project structure
-- Installation
-- Environment variables
-- Running the project 
-- API endpoints 
-- Example request and response
-- Testing
-- Contributors
-- Licence
+EcoRide Backend API is a RESTful ride-sharing and carpooling platform designed to connect passengers with drivers travelling along similar routes. The platform provides secure authentication, ride management, ride booking, wallet services, notifications, ratings, corporate transportation management, and an administrative dashboard for monitoring platform activities.
 
-## Introduction
-Ecoride is a  RESTful backend API, a ride-sharing and carpooling platform that connects passengers with drivers travelling along similar routes....
-
-## Features
-- User Authentication
-- Role Based Access Control (RBAC)
-- Driver Verification
-- Vehicle Registration
-- Ride Publishing
-- Ride Search & Matching
-- Ride Booking
-- Wallet Management
-- Payment Integration
-- Notifications
-- Ratings & Reviews
-
-## Tech Stack
-- **Runtime Environment:** Node.js
-
-- **Framework:** Express.js
-
-- **Development Tool:** Nodemon
-
-- **Database:** PostgreSQL
-
-- **Schema:** Sequelize ORM
-
-- **
-
-- 
-- 
-- JWT Authentication
-- bcryptjs
-- Multer
-- Cloudinary
-- Express Validator
-- Helmet
-- Morgan
-- CORS
+The system implements Role-Based Access Control (RBAC) to provide dedicated functionalities for Passengers, Drivers, Corporate Administrators, and Platform Administrators.
 
 ---
 
-# Project Structure
+## Features
 
-```
+- User Registration & Authentication
+- JWT Authentication
+- Role-Based Access Control (RBAC)
+- Passenger Profile Management
+- Driver Profile Verification
+- Corporate Profile Management
+- Vehicle Registration
+- Vehicle Inspection Management
+- Ride Publishing & Management
+- Ride Search & Matching
+- Ride Booking
+- Recurring Ride Booking
+- Driver Live Location Updates
+- Ride History
+- Wallet Management
+- Mock Payment Processing
+- Transaction History
+- Notifications
+- Driver & Passenger Ratings
+- Corporate Employee Management
+- Driver Dashboard
+- Passenger Dashboard
+- Corporate Dashboard
+- Platform Administration Dashboard
+
+---
+
+## Technology Stack
+
+### Backend
+
+- Node.js
+- Express.js
+
+### Database
+
+- PostgreSQL
+- Sequelize ORM
+
+### Authentication & Security
+
+- JSON Web Token (JWT)
+- bcryptjs
+- Helmet
+- CORS
+
+### File Upload
+
+- Multer
+- Cloudinary
+
+### Validation & Utilities
+
+- Express Validator
+- Morgan
+- dotenv
+
+---
+
+## Project Structure
+
+```text
 EcoRide_Backend
 │
 ├── src
@@ -72,29 +81,28 @@ EcoRide_Backend
 │   ├── constants
 │   ├── controllers
 │   ├── helpers
-│   ├── middleware
+│   ├── middlewares
 │   ├── models
 │   ├── routes
 │   ├── services
-│   ├── uploads
 │   ├── utils
 │   └── validators
 │
 ├── app.js
 ├── package.json
-├── .env
+├── .env.example
 └── README.md
 ```
 
-# Installation
+## Installation
 
 Clone the repository
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/EcoRide_Backend.git
+git clone https://github.com/<your-username>/EcoRide_Backend.git
 ```
 
-Enter the project
+Navigate into the project directory
 
 ```bash
 cd EcoRide_Backend
@@ -105,9 +113,10 @@ Install dependencies
 ```bash
 npm install
 ```
-Create an `.env` file
 
-# Environment Variables
+Create a `.env` file
+
+```env
 PORT=3000
 
 DB_HOST=localhost
@@ -117,9 +126,16 @@ DB_USER=postgres
 DB_PASSWORD=your_password
 
 JWT_SECRET=your_secret_key
+
+CLOUDINARY_CLOUD_NAME=
+CLOUDINARY_API_KEY=
+CLOUDINARY_API_SECRET=
+
+EMAIL_USER=
+EMAIL_PASSWORD=
 ```
 
-Run the server
+Run the development server
 
 ```bash
 npm run dev
@@ -127,7 +143,7 @@ npm run dev
 
 ---
 
-# API Base URL
+## API Base URL
 
 ```
 http://localhost:3000/api/v1
@@ -135,166 +151,177 @@ http://localhost:3000/api/v1
 
 ---
 
-# API Modules
+## User Roles
 
-## Authentication
+The system supports four user roles:
 
-```
+- Passenger
+- Driver
+- Corporate Administrator
+- Platform Administrator
+
+Access to resources is controlled through Role-Based Access Control (RBAC).
+
+---
+
+## API Modules
+
+### Authentication
+
+```http
 POST   /auth/register
 POST   /auth/login
-GET    /auth/profile
-PATCH  /auth/profile
+POST   /auth/forgot-password
+POST   /auth/reset-password
 PATCH  /auth/change-password
+GET    /auth/me
 ```
 
----
+### Passenger
 
-## Users
-
-```
-GET    /users
-GET    /users/:id
-PATCH  /users/:id
-DELETE /users/:id
+```http
+GET    /passengers/profile
+PATCH  /passengers/profile
+GET    /dashboard/passenger
 ```
 
----
+### Driver
 
-## Drivers
-
-```
-POST   /drivers
+```http
 GET    /drivers/profile
-PATCH  /drivers/:id/verify
+PATCH  /drivers/profile
+GET    /dashboard/driver
 ```
 
----
+### Ride Management
 
-## Vehicles
-
-```
-POST   /vehicles
-GET    /vehicles
-GET    /vehicles/:id
-PATCH  /vehicles/:id
-DELETE /vehicles/:id
-```
-
----
-
-## Rides
-
-```
+```http
 POST   /rides
 GET    /rides
-GET    /rides/:id
-PATCH  /rides/:id
-DELETE /rides/:id
 GET    /rides/search
+GET    /rides/history
+GET    /rides/history/me
+GET    /rides/:id
+
+PATCH  /rides/:id
+PATCH  /rides/:id/start
+PATCH  /rides/:id/arrive
+PATCH  /rides/:id/complete
+PATCH  /rides/:id/cancel
+
+PATCH  /rides/:id/location
+GET    /rides/:id/location
+
+DELETE /rides/:id
 ```
 
----
+### Booking
 
-## Bookings
-
-```
+```http
 POST   /bookings
 GET    /bookings
 GET    /bookings/:id
-PATCH  /bookings/:id/confirm
+PATCH  /bookings/:id/accept
 PATCH  /bookings/:id/reject
 PATCH  /bookings/:id/cancel
+PATCH  /bookings/:id/acknowledge
 ```
 
----
+### Wallet & Payments
 
-## Wallet
-
-```
+```http
 GET    /wallet
-POST   /wallet/fund
-POST   /wallet/withdraw
-GET    /wallet/history
+GET    /payments
+POST   /payments/mock
 ```
 
----
+### Notifications
 
-## Payments
-
-```
-POST   /payments/initialize
-GET    /payments/verify/:reference
-POST   /payments/webhook
-```
-
----
-
-## Ratings
-
-```
-POST   /ratings
-GET    /ratings/:rideId
-```
-
----
-
-## Notifications
-
-```
+```http
 GET    /notifications
+PATCH  /notifications/read-all
 PATCH  /notifications/:id/read
+DELETE /notifications/:id
+```
+
+### Ratings
+
+```http
+POST   /ratings
+GET    /ratings/me
+GET    /ratings/user/:userId
+```
+
+### Corporate
+
+```http
+POST   /corporate/profile
+GET    /corporate/profile
+PATCH  /corporate/profile
+
+POST   /corporate/documents
+GET    /corporate/documents
+PATCH  /corporate/documents
+
+GET    /corporate/dashboard
+
+POST   /corporate/employees
+GET    /corporate/employees
+GET    /corporate/employees/:id
+PATCH  /corporate/employees/:id
+DELETE /corporate/employees/:id
+```
+
+### Platform Administration
+
+```http
+GET    /admin/dashboard
+
+GET    /admin/users
+PATCH  /admin/users/:id/role
+
+GET    /admin/drivers
+PATCH  /admin/drivers/:driverId
+
+GET    /admin/passengers
+PATCH  /admin/passengers/:passengerId
+
+GET    /admin/vehicles
+PATCH  /admin/vehicles/:id
+
+GET    /admin/inspections
+PATCH  /admin/inspections/:id
+
+GET    /admin/corporates
+PATCH  /admin/corporates/:corporateId
 ```
 
 ---
 
-# Development Workflow
+## Testing
 
-1. Pull the latest changes from `main`.
-2. Create a feature branch.
-3. Implement your assigned task.
-4. Test your code.
-5. Commit your changes.
-6. Push your branch.
-7. Create a Pull Request.
-8. Wait for review before merging.
+The API was tested using Postman. All endpoints were validated for authentication, authorization, request validation, and expected success and error responses.
 
 ---
 
-# Git Branch Naming
+## Future Improvements
 
-```
-feature/authentication
-
-feature/rides
-
-feature/bookings
-
-feature/payment
-
-bugfix/login
-
-hotfix/payment
-```
+- Real-time ride tracking using WebSockets
+- Live ETA calculation
+- Push notifications
+- Paystack/Flutterwave integration
+- Route recommendation engine
+- Carbon emission analytics
+- Advanced reporting dashboard
 
 ---
 
-# Coding Standards
+## Contributors
 
-- Use ES Modules.
-- Follow REST API conventions.
-- Use async/await.
-- Keep controllers thin.
-- Put business logic inside services.
-- Validate every request.
-- Handle errors consistently.
-- Never commit `.env`.
-- Write descriptive commit messages.
+Group 6 Capstone Team
 
 ---
 
+## License
 
----
-
-# License
-
-Academic Capstone Project
+This project was developed as an academic capstone project for educational purposes.

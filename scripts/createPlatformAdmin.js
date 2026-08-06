@@ -10,19 +10,19 @@ const hashedPassword = await hashPassword("Admin123@");
 
 const existing = await User.findOne({
     where: {
-        email: "admin@ecoride.com",
+        email: "email",
     },
 });
 
 if (existing) {
-    console.log("Platform admin already exists.");
+   
     process.exit();
 }
 
 await User.create({
     firstName: "Platform",
     lastName: "Admin",
-    email: "admin@ecoride.com",
+    email: "email",
     phoneNumber: "08000000000",
     password: hashedPassword,
 
@@ -33,6 +33,6 @@ await User.create({
     isVerified: true,
 });
 
-console.log("Platform admin created successfully.");
+
 
 process.exit();

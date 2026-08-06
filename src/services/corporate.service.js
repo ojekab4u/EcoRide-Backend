@@ -2,6 +2,8 @@ import CorporateProfile from "../models/corporateProfile.model.js";
 import User from "../models/user.model.js";
 import AppError from "../utils/AppError.js";
 import CorporateDocument from "../models/corporateDocument.model.js";
+import CorporateEmployee from "../models/corporateEmployee.model.js";
+
 
 export const createCorporateProfileService = async (
     userId,
@@ -81,25 +83,44 @@ export const getCorporateDashboardService = async (
 
     const corporate =
         await CorporateProfile.findOne({
-
             where: {
-                userId
+                userId,
             },
-
             include: [
-                CorporateDocument
-            ]
-
+                CorporateDocument,
+                {
+                    model: CorporateEmployee,
+                    include: [
+                        {
+                            model: User,
+                            attributes: [
+                                "id",
+                                "firstName",
+                                "lastName",
+                                "email",
+                                "status",
+                            ],
+                        },
+                    ],
+                },
+            ],
         });
 
     if (!corporate) {
-
         throw new AppError(
             "Corporate profile not found.",
             404
         );
-
     }
+
+    const totalEmployees =
+        corporate.CorporateEmployees.length;
+
+    const activeEmployees =
+        corporate.CorporateEmployees.filter(
+            (employee) =>
+                employee.User?.status === "ACTIVE"
+        ).length;
 
     return {
 
@@ -132,19 +153,54 @@ export const getCorporateDashboardService = async (
                 corporate.profileCompleted,
 
             documents:
-                corporate.CorporateDocument
+                corporate.CorporateDocument,
 
         },
 
         stats: {
 
-            employees: 0,
+            totalEmployees,
+
+            activeEmployees,
+
+            inactiveEmployees:
+                totalEmployees -
+                activeEmployees,
 
             activeBookings: 0,
 
-            completedTrips: 0
+            completedTrips: 0,
 
-        }
+            monthlyTransportSpend: 0,
+
+        },
+
+        recentEmployees:
+            corporate.CorporateEmployees
+                .slice(0, 5)
+                .map((employee) => ({
+
+                    id: employee.id,
+
+                    employeeId:
+                        employee.employeeId,
+
+                    department:
+                        employee.department,
+
+                    status:
+                        employee.status,
+
+                    firstName:
+                        employee.User?.firstName,
+
+                    lastName:
+                        employee.User?.lastName,
+
+                    email:
+                        employee.User?.email,
+
+                })),
 
     };
 

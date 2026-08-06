@@ -94,9 +94,6 @@ export const getRideById = async (
         );
 
     } catch (error) {
-
-        console.error(error);
-
         next(error);
 
     }
