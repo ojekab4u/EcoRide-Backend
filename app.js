@@ -1,4 +1,5 @@
 import express from "express";
+import cors from "cors";
 import { connectDB } from "./src/config/database.js";
 import authRoutes from "./src/routes/auth.routes.js";
 import userRoutes from "./src/routes/user.routes.js";
@@ -33,6 +34,20 @@ import corporateRoutes from "./src/routes/corporate.routes.js";
 
 const app = express();
 
+app.use(
+    cors({
+        origin: [
+            "http://127.0.0.1:5500",
+            "http://localhost:5500",
+        ],
+        credentials: true,
+    })
+);
+
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(requestLogger);
 
 await connectDB();
 
@@ -42,8 +57,8 @@ app.get("/", (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 
-app.use(express.json());
-app.use(requestLogger);
+
+
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/rides", rideRoutes);
