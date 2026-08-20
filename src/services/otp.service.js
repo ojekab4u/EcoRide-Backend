@@ -37,7 +37,11 @@ export const sendEmailOTPService = async (email) => {
 try {
     await sendOTPEmail(user.email, code);
 } catch (error) {
-   
+    console.error("OTP EMAIL ERROR:", error);
+    throw new AppError(
+        "Failed to send OTP email.",
+        500
+    );
 }
 
     return;
