@@ -3,22 +3,18 @@ import User from "../models/user.model.js";
 import AppError from "../utils/AppError.js";
 import generateOTP from "../utils/generateOTP.js";
 import { sendOTPEmail } from "./email.service.js";
+
 import {sendSMS} from "./sms.service.js"
 
 export const sendEmailOTPService = async (email) => {
-
     const user = await User.findOne({
         where: { email },
     });
 
     if (!user) {
-        throw new AppError(
-            "User not found.",
-            404
-        );
+        throw new AppError("User not found.", 404);
     }
 
-    // remove previous otp
     await OTP.destroy({
         where: {
             userId: user.id,
@@ -34,18 +30,22 @@ export const sendEmailOTPService = async (email) => {
         purpose: "EMAIL_VERIFICATION",
         expiresAt: new Date(Date.now() + 10 * 60 * 1000),
     });
-try {
-    await sendOTPEmail(user.email, code);
-} catch (error) {
-    console.error("OTP EMAIL ERROR:", error);
-    throw new AppError(
-        "Failed to send OTP email.",
-        500
-    );
-}
 
-    return;
+    try {
+        await sendOTPEmail(user.email, code);
+    } catch (error) {
+        console.error(
+            "OTP EMAIL ERROR:",
+            error.response?.data || error.message || error
+        );
+
+        throw new AppError(
+            "Failed to send OTP email.",
+            500
+        );
+    }
 };
+
 
 export const verifyEmailOTPService = async (
     email,
