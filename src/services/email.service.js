@@ -1,9 +1,11 @@
-import transporter from "../config/mail.js";
+import { Resend } from "resend";
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export const sendOTPEmail = async (email, otp) => {
-    await transporter.sendMail({
-        from: `"EcoRide" <${process.env.EMAIL_USER}>`,
-        to: email,
+    const { data, error } = await resend.emails.send({
+        from: "EcoRide <onboarding@resend.dev>",
+        to: [email],
         subject: "Verify Your EcoRide Account",
         html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto;">
@@ -19,18 +21,30 @@ export const sendOTPEmail = async (email, otp) => {
 
                 <p>This code expires in <strong>10 minutes</strong>.</p>
 
-                <p>If you did not create an EcoRide account, you can ignore this email.</p>
+                <p>
+                    If you did not create an EcoRide account,
+                    you can ignore this email.
+                </p>
             </div>
         `,
     });
+
+    if (error) {
+        console.error("RESEND OTP ERROR:", error);
+        throw new Error(error.message || "Failed to send OTP email.");
+    }
+
+    return data;
 };
 
 export const sendResetEmail = async (email, resetToken) => {
-    const resetUrl = `http://localhost:3000/api/v1/auth/reset-password/${resetToken}`;
+    const resetUrl =
+        `${process.env.API_BASE_URL || "http://localhost:3000"}` +
+        `/api/v1/auth/reset-password/${resetToken}`;
 
-    await transporter.sendMail({
-        from: `"EcoRide" <${process.env.EMAIL_USER}>`,
-        to: email,
+    const { data, error } = await resend.emails.send({
+        from: "EcoRide <onboarding@resend.dev>",
+        to: [email],
         subject: "Reset Your EcoRide Password",
         html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto;">
@@ -56,4 +70,11 @@ export const sendResetEmail = async (email, resetToken) => {
             </div>
         `,
     });
+
+    if (error) {
+        console.error("RESEND RESET EMAIL ERROR:", error);
+        throw new Error(error.message || "Failed to send password reset email.");
+    }
+
+    return data;
 };
