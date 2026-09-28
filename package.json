@@ -26,12 +26,12 @@
     "express-validator": "^7.3.2",
     "helmet": "^8.3.0",
     "jsonwebtoken": "^9.0.3",
+    "mailersend": "^3.4.1",
     "morgan": "^1.11.0",
     "multer": "^2.2.0",
     "nodemailer": "^9.0.3",
     "pg": "^8.22.0",
     "pg-hstore": "^2.3.4",
-    "resend": "^6.30.0",
     "sequelize": "^6.37.8"
   },
   "devDependencies": {
