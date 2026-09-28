@@ -6,7 +6,8 @@ import {
     sendEmailOTP,
     verifyEmailOTP,
     sendPhoneOTP,
-    verifyPhoneOTP
+    verifyPhoneOTP,
+    resendEmailOTP,
 } from "../controllers/otp.controller.js";
 
 import {
@@ -23,6 +24,13 @@ router.post(
     sendOTPValidator,
     validate,
     sendEmailOTP
+);
+
+router.post(
+    "/resend-email",
+    sendOTPValidator,
+    validate,
+    resendEmailOTP
 );
 
 router.post(
