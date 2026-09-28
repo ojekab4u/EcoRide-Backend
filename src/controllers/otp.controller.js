@@ -29,6 +29,28 @@ export const sendEmailOTP = async (
 
 };
 
+export const resendEmailOTP = async (
+    req,
+    res,
+    next
+) => {
+
+    try {
+
+        await sendEmailOTPService(req.body.email);
+
+        return successResponse(
+            res,
+            200,
+            "OTP resent successfully."
+        );
+
+    } catch (error) {
+        next(error);
+    }
+
+};
+
 export const verifyEmailOTP = async (
     req,
     res,

@@ -58,7 +58,13 @@ export const registerUser = async (userData) => {
     });
 
     // Generate and send OTP
-    await sendEmailOTPService(user.email);
+    try {
+        await sendEmailOTPService(user.email);
+    } catch (error) {
+        // If OTP sending fails, delete the user so they're not stuck
+        await user.destroy();
+        throw error;
+    }
 
     // Return response
     return {
