@@ -10,9 +10,10 @@ import { generateToken } from "../utils/generateToken.js";
 import { sendResetEmail } from "./email.service.js";
 import { selectRole } from "../controllers/selectRole.controller.js";
 import {sendEmailOTPService,} from "./otp.service.js";
+import { ROLES } from "../constants/roles.js";
 
 export const registerUser = async (userData) => {
-        const {
+    const {
         firstName,
         lastName,
         email,
@@ -54,7 +55,8 @@ export const registerUser = async (userData) => {
         lastName,
         email,
         phoneNumber,
-        password: hashedPassword,        
+        password: hashedPassword,
+        role: ROLES.UNASSIGNED,
     });
 
     // Generate and send OTP
