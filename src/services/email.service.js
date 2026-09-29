@@ -70,8 +70,8 @@ export const sendResetEmail = async (
 ) => {
     try {
         const resetUrl =
-            `${process.env.API_BASE_URL || "http://localhost:3000"}` +
-            `/api/v1/auth/reset-password/${resetToken}`;
+            `${process.env.FRONTEND_URL || "http://localhost:3000"}` +
+            `/reset-password/${resetToken}`;
 
         const emailParams = new EmailParams()
             .setFrom(
