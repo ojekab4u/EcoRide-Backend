@@ -71,7 +71,7 @@ export const sendResetEmail = async (
     try {
         const resetUrl =
             `${process.env.FRONTEND_URL || "http://localhost:3000"}` +
-            `/reset-password/${resetToken}`;
+            `/ResetPassword.html?token=${resetToken}`;
 
         const emailParams = new EmailParams()
             .setFrom(
